@@ -1,0 +1,188 @@
+# Comments in GraphQL strings (such as this one) start with the hash (#) symbol.
+
+# Collection type that represents a content collection
+type Collection {
+  id: ID!
+  name: String!
+  slug: String!
+  description: String
+  fields: [Field!]!
+  entries(filter: EntryFilter): [Entry!]!
+}
+
+# Entry type that represents a record within a collection
+type Entry {
+  id: ID!
+  name: String!
+  slug: String
+  status: String!
+  createdAt: String!
+  updatedAt: String!
+  field(name: String!, filter: FieldFilter): FieldValue
+}
+
+# Field definition within a collection
+type Field {
+  id: ID!
+  name: String!
+  label: String
+  dataType: DataType!
+  isRequired: Boolean!
+  isUnique: Boolean!
+}
+
+# Enum for supported data types
+enum DataType {
+  TEXT
+  TYPST_TEXT
+  BOOLEAN
+  NUMBER
+  DATE_TIME
+  RELATION
+  OBJECT
+  TEXT_LIST
+  NUMBER_LIST
+  ASSET
+  RICH_TEXT
+  JSON
+}
+
+# Union type for different field values
+union FieldValue = Text | Asset | BooleanValue | NumberValue | DateTime | RichText | Json
+
+# Text field value
+type Text {
+  text: String
+}
+
+# Asset field value
+type Asset {
+  id: ID!
+  url: String!
+  filename: String!
+  mimeType: String!
+  fileSize: Int!
+  alt: String
+  caption: String
+}
+
+# Boolean field value
+type BooleanValue {
+  value: Boolean
+}
+
+# Number field value  
+type NumberValue {
+  value: Int
+}
+
+# DateTime field value
+type DateTime {
+  value: String # ISO date string
+}
+
+# Rich text field value
+type RichText {
+  raw: String!
+  rendered: String!
+  format: String!
+}
+
+# JSON field value
+type Json {
+  value: String! # JSON string
+  valueType: String!
+}
+
+# Filter input for text field values
+input TextFilter {
+  eq: String
+  ne: String
+  contains: String
+  startsWith: String
+  endsWith: String
+  in: [String!]
+  notIn: [String!]
+}
+
+# Filter input for number field values
+input NumberFilter {
+  eq: Int
+  ne: Int
+  gt: Int
+  gte: Int
+  lt: Int
+  lte: Int
+  in: [Int!]
+  notIn: [Int!]
+}
+
+# Filter input for boolean field values
+input BooleanFilter {
+  eq: Boolean
+  ne: Boolean
+}
+
+# Filter input for date/time field values
+input DateTimeFilter {
+  eq: String # ISO date string
+  ne: String
+  gt: String # greater than date
+  gte: String # greater than or equal date
+  lt: String # less than date
+  lte: String # less than or equal date
+}
+
+# Filter input for asset field values
+input AssetFilter {
+  filename: TextFilter
+  mimeType: TextFilter
+  fileSize: NumberFilter
+  alt: TextFilter
+  caption: TextFilter
+}
+
+# Filter input for rich text field values
+input RichTextFilter {
+  raw: TextFilter
+  rendered: TextFilter
+  format: TextFilter
+}
+
+# Filter input for JSON field values
+input JsonFilter {
+  valueType: TextFilter
+  # For JSON content filtering, we could add more specific filters later
+}
+
+# Union input for different field filter types
+input FieldFilter {
+  text: TextFilter
+  number: NumberFilter
+  boolean: BooleanFilter
+  dateTime: DateTimeFilter
+  asset: AssetFilter
+  richText: RichTextFilter
+  json: JsonFilter
+}
+
+# Filter input for entries
+input EntryFilter {
+  name: String
+  status: String
+}
+
+# This "Book" type defines the queryable fields for every book in our data source.
+type Book {
+  title: String
+  author: String
+}
+
+# The "Query" type is special: it lists all of the available queries that
+# clients can execute, along with the return type for each. In this
+# case, the "books" query returns an array of zero or more Books (defined above).
+type Query {
+  books: [Book]
+  collection(name: String!): Collection
+  collections: [Collection!]!
+}

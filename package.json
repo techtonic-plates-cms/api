@@ -1,0 +1,41 @@
+{
+  "name": "api",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "generate:graph": "graphql-codegen --config codegen.yml",
+    "compile": "bun run generate:graph && tsc --noEmit",
+    "dev": "bun run generate:graph && bun --hot run src/index.ts",
+    "build": "bun run generate:graph && tsc",
+    "generate:migration": "drizzle-kit generate",
+    "migrate": "drizzle-kit migrate"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "^6.0.0",
+    "@graphql-codegen/typescript": "^5.0.0",
+    "@graphql-codegen/typescript-resolvers": "^5.0.0",
+    "@types/bun": "latest",
+    "@types/pg": "^8.15.5",
+    "drizzle-kit": "^0.31.4",
+    "tsx": "^4.20.5"
+  },
+  "peerDependencies": {
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@apollo/server": "^5.0.0",
+    "@as-integrations/express5": "^1.1.2",
+    "@types/cors": "^2.8.13",
+    "@types/express": "^5.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "drizzle-graphql": "^0.8.5",
+    "drizzle-orm": "^0.44.5",
+    "express": "^4.18.2",
+    "graphql": "^16.11.0",
+    "minio": "^8.0.5",
+    "pg": "^8.16.3"
+  }
+}
