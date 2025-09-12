@@ -1,5 +1,5 @@
-import type { AppContext } from '../../index.js';
-import type { MutationResolvers } from '../../.graphql/resolvers-types.js';
+import type { AppContext } from '#/index';
+import type { MutationResolvers } from '$graphql/resolvers-types';
 import { 
   requireAuth,
 } from '#/session/';
@@ -8,10 +8,10 @@ import {
   requirePermission,
 
 } from "#/session/permissions"
-import { db } from '../../db/index.js';
-import { collectionsTable, fieldsTable } from '../../db/schema.js';
+import { db } from '$db/index';
+import { collectionsTable, fieldsTable } from '$db/schema';
 import { eq } from 'drizzle-orm';
-import { DataType } from '../../.graphql/resolvers-types.js';
+import { DataType } from '$graphql/resolvers-types';
 
 // Map database enum values back to GraphQL enum values
 const mapDbTypeToGraphQL = (dbType: string): DataType => {

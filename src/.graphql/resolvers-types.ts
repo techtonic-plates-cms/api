@@ -1,4 +1,4 @@
-import type { GraphQLResolveInfo } from 'graphql';
+import type { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
 import type { AppContext } from '../index';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
@@ -16,6 +16,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  JSON: { input: any; output: any; }
 };
 
 /**
@@ -130,6 +131,39 @@ export type CreateCollectionInput = {
   slug: Scalars['String']['input'];
   /** List of supported locales for internationalization (defaults to ['en']) */
   supportedLocales?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+/**
+ * Represents a field value for creating an entry.
+ * The field name must correspond to a field defined in the collection schema.
+ * The value should be a JSON scalar that will be decoded based on the field's DataType.
+ */
+export type CreateEntryFieldInput = {
+  /** Name of the field as defined in the collection schema */
+  field: Scalars['String']['input'];
+  /** JSON scalar value that will be decoded based on the field's DataType */
+  value: Scalars['JSON']['input'];
+};
+
+/**
+ * Input for creating a new entry in a collection.
+ * Defines the entry metadata and field values.
+ */
+export type CreateEntryInput = {
+  /** ID of the collection this entry belongs to */
+  collectionId: Scalars['ID']['input'];
+  /** Default locale for this entry group (defaults to 'en') */
+  defaultLocale?: InputMaybe<Scalars['String']['input']>;
+  /** Field values for this entry */
+  fields: Array<CreateEntryFieldInput>;
+  /** Locale for this entry (defaults to 'en') */
+  locale?: InputMaybe<Scalars['String']['input']>;
+  /** Human-readable name or title of the entry */
+  name: Scalars['String']['input'];
+  /** Optional URL-friendly identifier for the entry */
+  slug?: InputMaybe<Scalars['String']['input']>;
+  /** Entry status (defaults to 'DRAFT') */
+  status?: InputMaybe<Scalars['String']['input']>;
 };
 
 /**
@@ -329,6 +363,8 @@ export type Mutation = {
   __typename?: 'Mutation';
   /** Create a new collection with the provided schema definition */
   createCollection: Collection;
+  /** Create a new entry in a collection with field values */
+  createEntry: Entry;
 };
 
 
@@ -338,6 +374,15 @@ export type Mutation = {
  */
 export type MutationCreateCollectionArgs = {
   input: CreateCollectionInput;
+};
+
+
+/**
+ * Root mutation type that defines all available write operations.
+ * Clients use these mutations to create, update, and delete data.
+ */
+export type MutationCreateEntryArgs = {
+  input: CreateEntryInput;
 };
 
 /**
@@ -585,6 +630,8 @@ export type ResolversTypes = ResolversObject<{
   BooleanValue: ResolverTypeWrapper<BooleanValue>;
   Collection: ResolverTypeWrapper<Omit<Collection, 'entries'> & { entries: Array<ResolversTypes['Entry']> }>;
   CreateCollectionInput: CreateCollectionInput;
+  CreateEntryFieldInput: CreateEntryFieldInput;
+  CreateEntryInput: CreateEntryInput;
   CreateFieldInput: CreateFieldInput;
   DataType: DataType;
   DateTime: ResolverTypeWrapper<DateTime>;
@@ -596,6 +643,7 @@ export type ResolversTypes = ResolversObject<{
   FieldValue: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['FieldValue']>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
+  JSON: ResolverTypeWrapper<Scalars['JSON']['output']>;
   Json: ResolverTypeWrapper<Json>;
   JsonFilter: JsonFilter;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
@@ -622,6 +670,8 @@ export type ResolversParentTypes = ResolversObject<{
   BooleanValue: BooleanValue;
   Collection: Omit<Collection, 'entries'> & { entries: Array<ResolversParentTypes['Entry']> };
   CreateCollectionInput: CreateCollectionInput;
+  CreateEntryFieldInput: CreateEntryFieldInput;
+  CreateEntryInput: CreateEntryInput;
   CreateFieldInput: CreateFieldInput;
   DateTime: DateTime;
   DateTimeFilter: DateTimeFilter;
@@ -632,6 +682,7 @@ export type ResolversParentTypes = ResolversObject<{
   FieldValue: ResolversUnionTypes<ResolversParentTypes>['FieldValue'];
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
+  JSON: Scalars['JSON']['output'];
   Json: Json;
   JsonFilter: JsonFilter;
   Mutation: Record<PropertyKey, never>;
@@ -705,6 +756,10 @@ export type FieldValueResolvers<ContextType = AppContext, ParentType extends Res
   __resolveType: TypeResolveFn<'Asset' | 'BooleanValue' | 'DateTime' | 'Json' | 'NumberValue' | 'Relation' | 'RichText' | 'Text' | 'TypstText', ParentType, ContextType>;
 }>;
 
+export interface JsonScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['JSON'], any> {
+  name: 'JSON';
+}
+
 export type JsonResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['Json'] = ResolversParentTypes['Json']> = ResolversObject<{
   value?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   valueType?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -713,6 +768,7 @@ export type JsonResolvers<ContextType = AppContext, ParentType extends Resolvers
 
 export type MutationResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
   createCollection?: Resolver<ResolversTypes['Collection'], ParentType, ContextType, RequireFields<MutationCreateCollectionArgs, 'input'>>;
+  createEntry?: Resolver<ResolversTypes['Entry'], ParentType, ContextType, RequireFields<MutationCreateEntryArgs, 'input'>>;
 }>;
 
 export type NumberValueResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['NumberValue'] = ResolversParentTypes['NumberValue']> = ResolversObject<{
@@ -755,6 +811,7 @@ export type Resolvers<ContextType = AppContext> = ResolversObject<{
   Entry?: EntryResolvers<ContextType>;
   Field?: FieldResolvers<ContextType>;
   FieldValue?: FieldValueResolvers<ContextType>;
+  JSON?: GraphQLScalarType;
   Json?: JsonResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   NumberValue?: NumberValueResolvers<ContextType>;

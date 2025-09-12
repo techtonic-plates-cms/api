@@ -82,8 +82,7 @@ export const dataTypesEnum = pgEnum("data_types", [
     "date_time", 
     "relation",
     
-    // Complex types - JSON storage
-    "object",
+  
     "text_list", 
     "number_list",
     

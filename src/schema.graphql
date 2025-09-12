@@ -1,3 +1,5 @@
+scalar JSON
+
 """
 A content collection that groups related entries together with a defined schema.
 Collections serve as containers for structured data with customizable fields.
@@ -413,6 +415,55 @@ input CreateCollectionInput {
 }
 
 """
+Represents a field value for creating an entry.
+The field name must correspond to a field defined in the collection schema.
+The value should be a JSON scalar that will be decoded based on the field's DataType.
+
+Value format by DataType:
+- TEXT: "Simple text string"
+- TYPST_TEXT: {"raw": "source code", "rendered": "rendered output"}
+- BOOLEAN: true | false
+- NUMBER: 42 (integer)
+- DATE_TIME: "2023-12-25T10:30:00Z" (ISO 8601 string)
+- RELATION: "entry-uuid-to-reference"
+- ASSET: "asset-uuid-to-reference"
+- RICH_TEXT: {"raw": "markdown source", "rendered": "html output", "format": "markdown"}
+- TEXT_LIST: ["array", "of", "strings"]
+- NUMBER_LIST: [1, 2, 3, 4, 5]
+- JSON: {"arbitrary": "json", "data": true}
+"""
+input CreateEntryFieldInput {
+  "Name of the field as defined in the collection schema"
+  field: String!
+  """
+  JSON scalar value that will be decoded based on the field's DataType.
+  See the input description above for the expected format for each DataType.
+  """
+  value: JSON!
+}
+
+"""
+Input for creating a new entry in a collection.
+Defines the entry metadata and field values.
+"""
+input CreateEntryInput {
+  "Human-readable name or title of the entry"
+  name: String!
+  "ID of the collection this entry belongs to"
+  collectionId: ID!
+  "Optional URL-friendly identifier for the entry"
+  slug: String
+  "Entry status (defaults to 'DRAFT')"
+  status: String = "DRAFT"
+  "Locale for this entry (defaults to 'en')"
+  locale: String = "en"
+  "Default locale for this entry group (defaults to 'en')"
+  defaultLocale: String = "en"
+  "Field values for this entry"
+  fields: [CreateEntryFieldInput!]!
+}
+
+"""
 Root query type that defines all available read operations.
 Clients use these queries to fetch data from the API.
 """
@@ -428,4 +479,6 @@ Clients use these mutations to create, update, and delete data.
 type Mutation {
   "Create a new collection with the provided schema definition"
   createCollection(input: CreateCollectionInput!): Collection!
+  "Create a new entry in a collection with field values"
+  createEntry(input: CreateEntryInput!): Entry!
 }
