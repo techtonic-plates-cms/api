@@ -1,5 +1,5 @@
 import type { GraphQLResolveInfo } from 'graphql';
-import type { MyContext } from '../index';
+import type { AppContext } from '../index';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -26,7 +26,7 @@ export type Asset = {
   filename: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   mimeType: Scalars['String']['output'];
-  url: Scalars['String']['output'];
+  path: Scalars['String']['output'];
 };
 
 export type AssetFilter = {
@@ -35,12 +35,6 @@ export type AssetFilter = {
   fileSize?: InputMaybe<NumberFilter>;
   filename?: InputMaybe<TextFilter>;
   mimeType?: InputMaybe<TextFilter>;
-};
-
-export type Book = {
-  __typename?: 'Book';
-  author?: Maybe<Scalars['String']['output']>;
-  title?: Maybe<Scalars['String']['output']>;
 };
 
 export type BooleanFilter = {
@@ -55,17 +49,40 @@ export type BooleanValue = {
 
 export type Collection = {
   __typename?: 'Collection';
+  createdAt?: Maybe<Scalars['String']['output']>;
+  createdBy?: Maybe<Scalars['String']['output']>;
   description?: Maybe<Scalars['String']['output']>;
   entries: Array<Entry>;
   fields: Array<Field>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   slug: Scalars['String']['output'];
+  updatedAt?: Maybe<Scalars['String']['output']>;
 };
 
 
 export type CollectionEntriesArgs = {
   filter?: InputMaybe<EntryFilter>;
+};
+
+export type CreateCollectionInput = {
+  color?: InputMaybe<Scalars['String']['input']>;
+  defaultLocale?: InputMaybe<Scalars['String']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  fields: Array<CreateFieldInput>;
+  icon?: InputMaybe<Scalars['String']['input']>;
+  isLocalized?: Scalars['Boolean']['input'];
+  name: Scalars['String']['input'];
+  slug: Scalars['String']['input'];
+  supportedLocales?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+export type CreateFieldInput = {
+  dataType: DataType;
+  isRequired?: Scalars['Boolean']['input'];
+  isUnique?: Scalars['Boolean']['input'];
+  label?: InputMaybe<Scalars['String']['input']>;
+  name: Scalars['String']['input'];
 };
 
 export enum DataType {
@@ -135,11 +152,13 @@ export type FieldFilter = {
   dateTime?: InputMaybe<DateTimeFilter>;
   json?: InputMaybe<JsonFilter>;
   number?: InputMaybe<NumberFilter>;
+  relation?: InputMaybe<RelationFilter>;
   richText?: InputMaybe<RichTextFilter>;
   text?: InputMaybe<TextFilter>;
+  typstText?: InputMaybe<TypstTextFilter>;
 };
 
-export type FieldValue = Asset | BooleanValue | DateTime | Json | NumberValue | RichText | Text;
+export type FieldValue = Asset | BooleanValue | DateTime | Json | NumberValue | Relation | RichText | Text | TypstText;
 
 export type Json = {
   __typename?: 'Json';
@@ -149,6 +168,16 @@ export type Json = {
 
 export type JsonFilter = {
   valueType?: InputMaybe<TextFilter>;
+};
+
+export type Mutation = {
+  __typename?: 'Mutation';
+  createCollection: Collection;
+};
+
+
+export type MutationCreateCollectionArgs = {
+  input: CreateCollectionInput;
 };
 
 export type NumberFilter = {
@@ -169,14 +198,23 @@ export type NumberValue = {
 
 export type Query = {
   __typename?: 'Query';
-  books?: Maybe<Array<Maybe<Book>>>;
   collection?: Maybe<Collection>;
-  collections: Array<Collection>;
 };
 
 
 export type QueryCollectionArgs = {
   name: Scalars['String']['input'];
+};
+
+export type Relation = {
+  __typename?: 'Relation';
+  entry?: Maybe<Entry>;
+};
+
+export type RelationFilter = {
+  entryId?: InputMaybe<Scalars['String']['input']>;
+  entryName?: InputMaybe<TextFilter>;
+  entryStatus?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type RichText = {
@@ -205,6 +243,17 @@ export type TextFilter = {
   ne?: InputMaybe<Scalars['String']['input']>;
   notIn?: InputMaybe<Array<Scalars['String']['input']>>;
   startsWith?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type TypstText = {
+  __typename?: 'TypstText';
+  raw: Scalars['String']['output'];
+  rendered: Scalars['String']['output'];
+};
+
+export type TypstTextFilter = {
+  raw?: InputMaybe<TextFilter>;
+  rendered?: InputMaybe<TextFilter>;
 };
 
 export type WithIndex<TObject> = TObject & Record<string, any>;
@@ -285,8 +334,10 @@ export type ResolversUnionTypes<_RefType extends Record<string, unknown>> = Reso
     | ( DateTime )
     | ( Json )
     | ( NumberValue )
+    | ( Omit<Relation, 'entry'> & { entry?: Maybe<_RefType['Entry']> } )
     | ( RichText )
     | ( Text )
+    | ( TypstText )
   ;
 }>;
 
@@ -295,11 +346,12 @@ export type ResolversUnionTypes<_RefType extends Record<string, unknown>> = Reso
 export type ResolversTypes = ResolversObject<{
   Asset: ResolverTypeWrapper<Asset>;
   AssetFilter: AssetFilter;
-  Book: ResolverTypeWrapper<Book>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   BooleanFilter: BooleanFilter;
   BooleanValue: ResolverTypeWrapper<BooleanValue>;
   Collection: ResolverTypeWrapper<Omit<Collection, 'entries'> & { entries: Array<ResolversTypes['Entry']> }>;
+  CreateCollectionInput: CreateCollectionInput;
+  CreateFieldInput: CreateFieldInput;
   DataType: DataType;
   DateTime: ResolverTypeWrapper<DateTime>;
   DateTimeFilter: DateTimeFilter;
@@ -312,25 +364,31 @@ export type ResolversTypes = ResolversObject<{
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   Json: ResolverTypeWrapper<Json>;
   JsonFilter: JsonFilter;
+  Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   NumberFilter: NumberFilter;
   NumberValue: ResolverTypeWrapper<NumberValue>;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
+  Relation: ResolverTypeWrapper<Omit<Relation, 'entry'> & { entry?: Maybe<ResolversTypes['Entry']> }>;
+  RelationFilter: RelationFilter;
   RichText: ResolverTypeWrapper<RichText>;
   RichTextFilter: RichTextFilter;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Text: ResolverTypeWrapper<Text>;
   TextFilter: TextFilter;
+  TypstText: ResolverTypeWrapper<TypstText>;
+  TypstTextFilter: TypstTextFilter;
 }>;
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = ResolversObject<{
   Asset: Asset;
   AssetFilter: AssetFilter;
-  Book: Book;
   Boolean: Scalars['Boolean']['output'];
   BooleanFilter: BooleanFilter;
   BooleanValue: BooleanValue;
   Collection: Omit<Collection, 'entries'> & { entries: Array<ResolversParentTypes['Entry']> };
+  CreateCollectionInput: CreateCollectionInput;
+  CreateFieldInput: CreateFieldInput;
   DateTime: DateTime;
   DateTimeFilter: DateTimeFilter;
   Entry: Omit<Entry, 'field'> & { field?: Maybe<ResolversParentTypes['FieldValue']> };
@@ -342,52 +400,55 @@ export type ResolversParentTypes = ResolversObject<{
   Int: Scalars['Int']['output'];
   Json: Json;
   JsonFilter: JsonFilter;
+  Mutation: Record<PropertyKey, never>;
   NumberFilter: NumberFilter;
   NumberValue: NumberValue;
   Query: Record<PropertyKey, never>;
+  Relation: Omit<Relation, 'entry'> & { entry?: Maybe<ResolversParentTypes['Entry']> };
+  RelationFilter: RelationFilter;
   RichText: RichText;
   RichTextFilter: RichTextFilter;
   String: Scalars['String']['output'];
   Text: Text;
   TextFilter: TextFilter;
+  TypstText: TypstText;
+  TypstTextFilter: TypstTextFilter;
 }>;
 
-export type AssetResolvers<ContextType = MyContext, ParentType extends ResolversParentTypes['Asset'] = ResolversParentTypes['Asset']> = ResolversObject<{
+export type AssetResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['Asset'] = ResolversParentTypes['Asset']> = ResolversObject<{
   alt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   caption?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   fileSize?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   filename?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   mimeType?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  url?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  path?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type BookResolvers<ContextType = MyContext, ParentType extends ResolversParentTypes['Book'] = ResolversParentTypes['Book']> = ResolversObject<{
-  author?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-}>;
-
-export type BooleanValueResolvers<ContextType = MyContext, ParentType extends ResolversParentTypes['BooleanValue'] = ResolversParentTypes['BooleanValue']> = ResolversObject<{
+export type BooleanValueResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['BooleanValue'] = ResolversParentTypes['BooleanValue']> = ResolversObject<{
   value?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type CollectionResolvers<ContextType = MyContext, ParentType extends ResolversParentTypes['Collection'] = ResolversParentTypes['Collection']> = ResolversObject<{
+export type CollectionResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['Collection'] = ResolversParentTypes['Collection']> = ResolversObject<{
+  createdAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  createdBy?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   entries?: Resolver<Array<ResolversTypes['Entry']>, ParentType, ContextType, Partial<CollectionEntriesArgs>>;
   fields?: Resolver<Array<ResolversTypes['Field']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   slug?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  updatedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 }>;
 
-export type DateTimeResolvers<ContextType = MyContext, ParentType extends ResolversParentTypes['DateTime'] = ResolversParentTypes['DateTime']> = ResolversObject<{
+export type DateTimeResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['DateTime'] = ResolversParentTypes['DateTime']> = ResolversObject<{
   value?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type EntryResolvers<ContextType = MyContext, ParentType extends ResolversParentTypes['Entry'] = ResolversParentTypes['Entry']> = ResolversObject<{
+export type EntryResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['Entry'] = ResolversParentTypes['Entry']> = ResolversObject<{
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   field?: Resolver<Maybe<ResolversTypes['FieldValue']>, ParentType, ContextType, RequireFields<EntryFieldArgs, 'name'>>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
@@ -397,7 +458,7 @@ export type EntryResolvers<ContextType = MyContext, ParentType extends Resolvers
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 }>;
 
-export type FieldResolvers<ContextType = MyContext, ParentType extends ResolversParentTypes['Field'] = ResolversParentTypes['Field']> = ResolversObject<{
+export type FieldResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['Field'] = ResolversParentTypes['Field']> = ResolversObject<{
   dataType?: Resolver<ResolversTypes['DataType'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   isRequired?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -406,42 +467,54 @@ export type FieldResolvers<ContextType = MyContext, ParentType extends Resolvers
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 }>;
 
-export type FieldValueResolvers<ContextType = MyContext, ParentType extends ResolversParentTypes['FieldValue'] = ResolversParentTypes['FieldValue']> = ResolversObject<{
-  __resolveType: TypeResolveFn<'Asset' | 'BooleanValue' | 'DateTime' | 'Json' | 'NumberValue' | 'RichText' | 'Text', ParentType, ContextType>;
+export type FieldValueResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['FieldValue'] = ResolversParentTypes['FieldValue']> = ResolversObject<{
+  __resolveType: TypeResolveFn<'Asset' | 'BooleanValue' | 'DateTime' | 'Json' | 'NumberValue' | 'Relation' | 'RichText' | 'Text' | 'TypstText', ParentType, ContextType>;
 }>;
 
-export type JsonResolvers<ContextType = MyContext, ParentType extends ResolversParentTypes['Json'] = ResolversParentTypes['Json']> = ResolversObject<{
+export type JsonResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['Json'] = ResolversParentTypes['Json']> = ResolversObject<{
   value?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   valueType?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type NumberValueResolvers<ContextType = MyContext, ParentType extends ResolversParentTypes['NumberValue'] = ResolversParentTypes['NumberValue']> = ResolversObject<{
+export type MutationResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
+  createCollection?: Resolver<ResolversTypes['Collection'], ParentType, ContextType, RequireFields<MutationCreateCollectionArgs, 'input'>>;
+}>;
+
+export type NumberValueResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['NumberValue'] = ResolversParentTypes['NumberValue']> = ResolversObject<{
   value?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type QueryResolvers<ContextType = MyContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
-  books?: Resolver<Maybe<Array<Maybe<ResolversTypes['Book']>>>, ParentType, ContextType>;
+export type QueryResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
   collection?: Resolver<Maybe<ResolversTypes['Collection']>, ParentType, ContextType, RequireFields<QueryCollectionArgs, 'name'>>;
-  collections?: Resolver<Array<ResolversTypes['Collection']>, ParentType, ContextType>;
 }>;
 
-export type RichTextResolvers<ContextType = MyContext, ParentType extends ResolversParentTypes['RichText'] = ResolversParentTypes['RichText']> = ResolversObject<{
+export type RelationResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['Relation'] = ResolversParentTypes['Relation']> = ResolversObject<{
+  entry?: Resolver<Maybe<ResolversTypes['Entry']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type RichTextResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['RichText'] = ResolversParentTypes['RichText']> = ResolversObject<{
   format?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   raw?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   rendered?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type TextResolvers<ContextType = MyContext, ParentType extends ResolversParentTypes['Text'] = ResolversParentTypes['Text']> = ResolversObject<{
+export type TextResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['Text'] = ResolversParentTypes['Text']> = ResolversObject<{
   text?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type Resolvers<ContextType = MyContext> = ResolversObject<{
+export type TypstTextResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['TypstText'] = ResolversParentTypes['TypstText']> = ResolversObject<{
+  raw?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  rendered?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type Resolvers<ContextType = AppContext> = ResolversObject<{
   Asset?: AssetResolvers<ContextType>;
-  Book?: BookResolvers<ContextType>;
   BooleanValue?: BooleanValueResolvers<ContextType>;
   Collection?: CollectionResolvers<ContextType>;
   DateTime?: DateTimeResolvers<ContextType>;
@@ -449,9 +522,12 @@ export type Resolvers<ContextType = MyContext> = ResolversObject<{
   Field?: FieldResolvers<ContextType>;
   FieldValue?: FieldValueResolvers<ContextType>;
   Json?: JsonResolvers<ContextType>;
+  Mutation?: MutationResolvers<ContextType>;
   NumberValue?: NumberValueResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
+  Relation?: RelationResolvers<ContextType>;
   RichText?: RichTextResolvers<ContextType>;
   Text?: TextResolvers<ContextType>;
+  TypstText?: TypstTextResolvers<ContextType>;
 }>;
 

@@ -1,5 +1,6 @@
 # Comments in GraphQL strings (such as this one) start with the hash (#) symbol.
 
+
 # Collection type that represents a content collection
 type Collection {
   id: ID!
@@ -8,6 +9,9 @@ type Collection {
   description: String
   fields: [Field!]!
   entries(filter: EntryFilter): [Entry!]!
+  createdBy: String
+  createdAt: String
+  updatedAt: String
 }
 
 # Entry type that represents a record within a collection
@@ -48,17 +52,28 @@ enum DataType {
 }
 
 # Union type for different field values
-union FieldValue = Text | Asset | BooleanValue | NumberValue | DateTime | RichText | Json
+union FieldValue = Text | TypstText | Asset | BooleanValue | NumberValue | DateTime | RichText | Json | Relation
 
 # Text field value
 type Text {
   text: String
 }
 
+# Typst text field value
+type TypstText {
+  raw: String!
+  rendered: String!
+}
+
+# Relation field value
+type Relation {
+  entry: Entry
+}
+
 # Asset field value
 type Asset {
   id: ID!
-  url: String!
+  path: String!
   filename: String!
   mimeType: String!
   fileSize: Int!
@@ -155,15 +170,30 @@ input JsonFilter {
   # For JSON content filtering, we could add more specific filters later
 }
 
+# Filter input for Typst text field values
+input TypstTextFilter {
+  raw: TextFilter
+  rendered: TextFilter
+}
+
+# Filter input for relation field values
+input RelationFilter {
+  entryId: String
+  entryName: TextFilter
+  entryStatus: String
+}
+
 # Union input for different field filter types
 input FieldFilter {
   text: TextFilter
+  typstText: TypstTextFilter
   number: NumberFilter
   boolean: BooleanFilter
   dateTime: DateTimeFilter
   asset: AssetFilter
   richText: RichTextFilter
   json: JsonFilter
+  relation: RelationFilter
 }
 
 # Filter input for entries
@@ -172,17 +202,40 @@ input EntryFilter {
   status: String
 }
 
-# This "Book" type defines the queryable fields for every book in our data source.
-type Book {
-  title: String
-  author: String
+
+# Input type for creating a field
+input CreateFieldInput {
+  name: String!
+  label: String
+  dataType: DataType!
+  isRequired: Boolean! = false
+  isUnique: Boolean! = false
+}
+
+# Input type for creating a collection with its fields
+input CreateCollectionInput {
+  name: String!
+  slug: String!
+  description: String
+  icon: String
+  color: String
+  defaultLocale: String = "en"
+  supportedLocales: [String!] = ["en"]
+  isLocalized: Boolean! = false
+  fields: [CreateFieldInput!]!
 }
 
 # The "Query" type is special: it lists all of the available queries that
 # clients can execute, along with the return type for each. In this
 # case, the "books" query returns an array of zero or more Books (defined above).
 type Query {
-  books: [Book]
   collection(name: String!): Collection
-  collections: [Collection!]!
+
+  
+
+}
+
+# Mutations for creating, updating, and deleting data
+type Mutation {
+  createCollection(input: CreateCollectionInput!): Collection!
 }

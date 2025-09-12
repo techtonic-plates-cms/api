@@ -1,14 +1,21 @@
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@as-integrations/express5';
 import express from 'express';
+import type { Request } from 'express';
 import cors from 'cors';
 import { readFileSync } from 'fs';
-import { resolvers } from './graphql/resolvers';
+import { resolvers } from './resolvers';
+import { authRouter } from './routes/auth';
+import { sessionMiddleware } from './middleware';
+import type { SessionData } from './session/types';
+import type { PermissionChecker } from './session/permissions';
+import { ensureAdminUser } from './utils/admin-setup';
 
 // Define and export the context interface for type generation
-export interface MyContext {
-    // Add any shared context properties here
-    // For example: user authentication, dataSources, etc.
+export interface AppContext {
+    session?: SessionData;
+    permissions?: PermissionChecker;
+    req: Request;
 }
 
 // A schema is a collection of type definitions (hence "typeDefs")
@@ -16,6 +23,7 @@ export interface MyContext {
 // your data.
 const typeDefs = readFileSync('./src/schema.graphql', { encoding: 'utf-8' });
 
+await ensureAdminUser();
 
 // Set up Express app for REST API
 export const app = express();
@@ -23,9 +31,14 @@ export const app = express();
 // Apply CORS and JSON middleware
 app.use(cors());
 app.use(express.json());
+app.use(sessionMiddleware);
+
+// Add authentication routes
+app.use('/auth', authRouter);
+
 // The ApolloServer constructor requires two parameters: your schema
 // definition and your set of resolvers.
-const server = new ApolloServer<MyContext>({
+const server = new ApolloServer<AppContext>({
     typeDefs,
     resolvers,
 });
@@ -34,15 +47,21 @@ const server = new ApolloServer<MyContext>({
 await server.start();
 
 // Apply Apollo GraphQL middleware to Express
-app.use('/graphql', cors<cors.CorsRequest>(), express.json(), expressMiddleware(server, {
-    context: async ({ req }) => ({
-        // Add any context properties here
-        // For example: token: req.headers.authorization
-    })
+app.use('/graphql', cors<cors.CorsRequest>(), express.json(), sessionMiddleware, expressMiddleware(server, {
+    context: async ({ req }) => {
+        console.log('GraphQL context - Authorization header:', req.headers.authorization);
+        console.log('GraphQL context - Session:', req.session ? 'Present' : 'Undefined');
+        console.log('GraphQL context - Permissions:', req.permissions ? 'Present' : 'Undefined');
+        return {
+            session: req.session,
+            permissions: req.permissions,
+            req
+        };
+    }
 }));
 
 // Start the combined server
-const port = 4000;
+const port = 4001;
 app.listen(port, () => {
     console.log(`🚀 Server ready at http://localhost:${port}/`);
     console.log(`📊 GraphQL server ready at: http://localhost:${port}/graphql`);

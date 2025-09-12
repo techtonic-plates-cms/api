@@ -15,4 +15,4 @@ generates:
       # Note, this file path starts from the location of the
       # file where you generate types.
       # (i.e., `/src/__generated__/resolvers-types.ts` above)
-      contextType: "../index#MyContext"
+      contextType: "../index#AppContext"

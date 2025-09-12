@@ -27,7 +27,8 @@
     "noPropertyAccessFromIndexSignature": false,
     "paths": {
       "$graphql/*": ["./src/.graphql/*"],
-     
+      "$db/*": ["./src/db/*"],
+      "#/*": ["./src/*"]
     }
   }
 }

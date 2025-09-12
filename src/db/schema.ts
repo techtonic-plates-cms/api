@@ -250,39 +250,4 @@ export const entryAssetsTable = pgTable("entry_assets", {
     createdAt: timestamp({ mode: "date" }).notNull().defaultNow(),
 });
 
-// Entry JSON values table (for complex objects, arrays, etc.)
-export const entryJsonData = pgTable("entry_json_data", {
-    entryId: uuid().notNull().references(() => entriesTable.id, { onDelete: "cascade", onUpdate: "cascade" }),
-    fieldId: uuid().notNull().references(() => fieldsTable.id, { onDelete: "cascade", onUpdate: "cascade" }),
-    createdAt: timestamp({ mode: "date" }).notNull().defaultNow(),
-    value: text().notNull(), // JSON stored as text
-    valueType: varchar({ length: 50 }).notNull(), // 'object', 'text_list', 'number_list', 'json'
-});
-
-// Assets table for file/media management
-export const assets = pgTable("assets", {
-    id: uuid().primaryKey().defaultRandom(),
-    filename: varchar({ length: 255 }).notNull(),
-    originalFilename: varchar({ length: 255 }).notNull(),
-    mimeType: varchar({ length: 100 }).notNull(),
-    fileSize: integer().notNull(),
-    width: integer(), // For images
-    height: integer(), // For images
-    duration: integer(), // For videos/audio in seconds
-    url: varchar({ length: 1024 }).notNull(),
-    thumbnailUrl: varchar({ length: 1024 }),
-    uploadedBy: uuid().notNull().references(() => usersTable.id),
-    uploadedAt: timestamp({ mode: "date" }).notNull().defaultNow(),
-    alt: varchar({ length: 500 }), // Alt text for accessibility
-    caption: text(), // Caption/description
-});
-
-// Entry asset values table (for file/media references)
-export const entryAssets = pgTable("entry_assets", {
-    entryId: uuid().notNull().references(() => entriesTable.id, { onDelete: "cascade", onUpdate: "cascade" }),
-    fieldId: uuid().notNull().references(() => fieldsTable.id, { onDelete: "cascade", onUpdate: "cascade" }),
-    assetId: uuid().notNull().references(() => assets.id, { onDelete: "cascade", onUpdate: "cascade" }),
-    sortOrder: integer().notNull().default(0), // For multiple assets per field
-    createdAt: timestamp({ mode: "date" }).notNull().defaultNow(),
-});
 

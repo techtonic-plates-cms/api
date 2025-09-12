@@ -1,0 +1,1 @@
+export { GraphQLAuthError } from './errors';
