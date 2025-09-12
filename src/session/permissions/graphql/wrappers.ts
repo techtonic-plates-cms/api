@@ -1,6 +1,6 @@
-import type { AppContext } from '../../index';
+import type { AppContext } from '#/index';
 import type { GraphQLResolveInfo } from 'graphql';
-import { requireAuth, isAuthenticated } from './auth';
+import { requireAuth, isAuthenticated } from '#/middleware';
 
 /**
  * Higher-order function to wrap resolvers with authentication
@@ -47,6 +47,6 @@ export function filterByPermission<T extends Record<string, any>>(
   
   return items.filter(item => {
     const fieldScope = getFieldScope ? getFieldScope(item) : undefined;
-    return context.permissions.hasPermission(resource, action, fieldScope);
+    return context!.permissions!.hasPermission(resource, action, fieldScope);
   });
 }

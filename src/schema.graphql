@@ -1,241 +1,431 @@
-# Comments in GraphQL strings (such as this one) start with the hash (#) symbol.
-
-
-# Collection type that represents a content collection
+"""
+A content collection that groups related entries together with a defined schema.
+Collections serve as containers for structured data with customizable fields.
+"""
 type Collection {
+  "Unique identifier for the collection"
   id: ID!
+  "Human-readable name of the collection"
   name: String!
+  "URL-friendly identifier used for routing and references"
   slug: String!
+  "Optional description explaining the purpose of this collection"
   description: String
+  "Schema definition - list of fields that define the structure of entries in this collection"
   fields: [Field!]!
+  "All entries belonging to this collection, with optional filtering"
   entries(filter: EntryFilter): [Entry!]!
+  "Username or ID of the user who created this collection"
   createdBy: String
+  "ISO 8601 timestamp when the collection was created"
   createdAt: String
+  "ISO 8601 timestamp when the collection was last modified"
   updatedAt: String
 }
 
-# Entry type that represents a record within a collection
+"""
+A single record or content item within a collection.
+Entries contain the actual data values that conform to their collection's schema.
+"""
 type Entry {
+  "Unique identifier for the entry"
   id: ID!
+  "Human-readable name or title of the entry"
   name: String!
+  "Optional URL-friendly identifier for the entry"
   slug: String
+  "Current status of the entry (e.g., draft, published, archived)"
   status: String!
+  "ISO 8601 timestamp when the entry was created"
   createdAt: String!
+  "ISO 8601 timestamp when the entry was last modified"
   updatedAt: String!
+  "Retrieve the value of a specific field by name, with optional filtering"
   field(name: String!, filter: FieldFilter): FieldValue
 }
 
-# Field definition within a collection
+"""
+A field definition that specifies the structure and constraints for data in a collection.
+Fields define what types of data can be stored and how they should be validated.
+"""
 type Field {
+  "Unique identifier for the field"
   id: ID!
+  "Technical name of the field, used for data storage and API access"
   name: String!
+  "Human-readable display label for the field"
   label: String
+  "The data type that this field accepts"
   dataType: DataType!
+  "Whether this field must have a value when creating or updating entries"
   isRequired: Boolean!
+  "Whether values for this field must be unique across all entries in the collection"
   isUnique: Boolean!
 }
 
-# Enum for supported data types
+"""
+Supported data types for collection fields.
+Each type defines how data is stored, validated, and queried.
+"""
 enum DataType {
+  "Plain text content"
   TEXT
+  "Typst markup text with raw and rendered versions"
   TYPST_TEXT
+  "True/false boolean value"
   BOOLEAN
+  "Numeric integer value"
   NUMBER
+  "ISO 8601 date and time string"
   DATE_TIME
+  "Reference to another entry in the system"
   RELATION
+  "Complex nested object structure"
   OBJECT
+  "Array of text strings"
   TEXT_LIST
+  "Array of numeric values"
   NUMBER_LIST
+  "File upload with metadata"
   ASSET
+  "Formatted text with markup (HTML, Markdown, etc.)"
   RICH_TEXT
+  "Arbitrary JSON data with type information"
   JSON
 }
 
-# Union type for different field values
+"""
+Union of all possible field value types.
+The actual type returned depends on the field's DataType definition.
+"""
 union FieldValue = Text | TypstText | Asset | BooleanValue | NumberValue | DateTime | RichText | Json | Relation
 
-# Text field value
+"""
+Plain text field value container.
+"""
 type Text {
+  "The text content"
   text: String
 }
 
-# Typst text field value
+"""
+Typst markup text with both raw source and rendered output.
+Typst is a modern typesetting language for scientific documents.
+"""
 type TypstText {
+  "Raw Typst markup source code"
   raw: String!
+  "Rendered output (HTML, PDF, or other format)"
   rendered: String!
 }
 
-# Relation field value
+"""
+Reference to another entry in the system.
+Enables relationships between different content items.
+"""
 type Relation {
+  "The referenced entry"
   entry: Entry
 }
 
-# Asset field value
+"""
+File asset with metadata and storage information.
+Represents uploaded files like images, documents, videos, etc.
+"""
 type Asset {
+  "Unique identifier for the asset"
   id: ID!
+  "Storage path or URL to the file"
   path: String!
+  "Original filename when uploaded"
   filename: String!
+  "MIME type of the file (e.g., image/jpeg, application/pdf)"
   mimeType: String!
+  "File size in bytes"
   fileSize: Int!
+  "Alternative text for accessibility"
   alt: String
+  "Optional caption or description"
   caption: String
 }
 
-# Boolean field value
+"""
+Boolean value container for true/false fields.
+"""
 type BooleanValue {
+  "The boolean value"
   value: Boolean
 }
 
-# Number field value  
+"""
+Numeric value container for integer fields.
+"""
 type NumberValue {
+  "The numeric value"
   value: Int
 }
 
-# DateTime field value
+"""
+Date and time value container.
+"""
 type DateTime {
-  value: String # ISO date string
+  "ISO 8601 formatted date/time string"
+  value: String
 }
 
-# Rich text field value
+"""
+Rich text content with formatting and markup support.
+Supports various formats like HTML, Markdown, etc.
+"""
 type RichText {
+  "Raw source content with markup"
   raw: String!
+  "Rendered HTML or formatted output"
   rendered: String!
+  "Format type (html, markdown, etc.)"
   format: String!
 }
 
-# JSON field value
+"""
+JSON data container with type information.
+Stores arbitrary structured data as JSON strings.
+"""
 type Json {
-  value: String! # JSON string
+  "JSON-encoded string representation of the data"
+  value: String!
+  "Type information about the JSON structure"
   valueType: String!
 }
 
-# Filter input for text field values
+"""
+Filtering options for text field values.
+Supports various string matching operations.
+"""
 input TextFilter {
+  "Exact match"
   eq: String
+  "Not equal to"
   ne: String
+  "Contains substring"
   contains: String
+  "Starts with prefix"
   startsWith: String
+  "Ends with suffix"
   endsWith: String
+  "Value is in the provided list"
   in: [String!]
+  "Value is not in the provided list"
   notIn: [String!]
 }
 
-# Filter input for number field values
+"""
+Filtering options for numeric field values.
+Supports comparison and range operations.
+"""
 input NumberFilter {
+  "Exactly equal to"
   eq: Int
+  "Not equal to"
   ne: Int
+  "Greater than"
   gt: Int
+  "Greater than or equal to"
   gte: Int
+  "Less than"
   lt: Int
+  "Less than or equal to"
   lte: Int
+  "Value is in the provided list"
   in: [Int!]
+  "Value is not in the provided list"
   notIn: [Int!]
 }
 
-# Filter input for boolean field values
+"""
+Filtering options for boolean field values.
+"""
 input BooleanFilter {
+  "Exactly equal to (true or false)"
   eq: Boolean
+  "Not equal to"
   ne: Boolean
 }
 
-# Filter input for date/time field values
+"""
+Filtering options for date/time field values.
+All dates should be provided as ISO 8601 strings.
+"""
 input DateTimeFilter {
-  eq: String # ISO date string
+  "Exactly equal to this date/time"
+  eq: String
+  "Not equal to this date/time"
   ne: String
-  gt: String # greater than date
-  gte: String # greater than or equal date
-  lt: String # less than date
-  lte: String # less than or equal date
+  "After this date/time"
+  gt: String
+  "On or after this date/time"
+  gte: String
+  "Before this date/time"
+  lt: String
+  "On or before this date/time"
+  lte: String
 }
 
-# Filter input for asset field values
+"""
+Filtering options for asset field values.
+Allows filtering on asset metadata properties.
+"""
 input AssetFilter {
+  "Filter by filename"
   filename: TextFilter
+  "Filter by MIME type"
   mimeType: TextFilter
+  "Filter by file size in bytes"
   fileSize: NumberFilter
+  "Filter by alt text"
   alt: TextFilter
+  "Filter by caption"
   caption: TextFilter
 }
 
-# Filter input for rich text field values
+"""
+Filtering options for rich text field values.
+Allows filtering on both raw and rendered content.
+"""
 input RichTextFilter {
+  "Filter by raw source content"
   raw: TextFilter
+  "Filter by rendered HTML content"
   rendered: TextFilter
+  "Filter by format type"
   format: TextFilter
 }
 
-# Filter input for JSON field values
+"""
+Filtering options for JSON field values.
+Currently supports filtering by value type, with room for expansion.
+"""
 input JsonFilter {
+  "Filter by the type of JSON structure stored"
   valueType: TextFilter
-  # For JSON content filtering, we could add more specific filters later
 }
 
-# Filter input for Typst text field values
+"""
+Filtering options for Typst text field values.
+Allows filtering on both source and rendered content.
+"""
 input TypstTextFilter {
+  "Filter by raw Typst source code"
   raw: TextFilter
+  "Filter by rendered output content"
   rendered: TextFilter
 }
 
-# Filter input for relation field values
+"""
+Filtering options for relation field values.
+Allows filtering by properties of the referenced entry.
+"""
 input RelationFilter {
+  "Filter by the ID of the referenced entry"
   entryId: String
+  "Filter by the name of the referenced entry"
   entryName: TextFilter
+  "Filter by the status of the referenced entry"
   entryStatus: String
 }
 
-# Union input for different field filter types
+"""
+Unified filter input that can contain filters for any field type.
+Only the filter matching the field's data type will be applied.
+"""
 input FieldFilter {
+  "Filter for text fields"
   text: TextFilter
+  "Filter for Typst text fields"
   typstText: TypstTextFilter
+  "Filter for number fields"
   number: NumberFilter
+  "Filter for boolean fields"
   boolean: BooleanFilter
+  "Filter for date/time fields"
   dateTime: DateTimeFilter
+  "Filter for asset fields"
   asset: AssetFilter
+  "Filter for rich text fields"
   richText: RichTextFilter
+  "Filter for JSON fields"
   json: JsonFilter
+  "Filter for relation fields"
   relation: RelationFilter
 }
 
-# Filter input for entries
+"""
+Filtering options for entries within a collection.
+Allows filtering by basic entry properties.
+"""
 input EntryFilter {
+  "Filter by entry name (exact match)"
   name: String
+  "Filter by entry status"
   status: String
 }
 
 
-# Input type for creating a field
+"""
+Input for creating a new field within a collection.
+Defines the structure and constraints for the field.
+"""
 input CreateFieldInput {
+  "Technical name for the field (used in API calls)"
   name: String!
+  "Human-readable display label"
   label: String
+  "Data type that this field will store"
   dataType: DataType!
+  "Whether the field must have a value (defaults to false)"
   isRequired: Boolean! = false
+  "Whether field values must be unique across entries (defaults to false)"
   isUnique: Boolean! = false
 }
 
-# Input type for creating a collection with its fields
+"""
+Input for creating a new collection with its field definitions.
+Defines the collection metadata and schema structure.
+"""
 input CreateCollectionInput {
+  "Human-readable name for the collection"
   name: String!
+  "URL-friendly identifier for the collection"
   slug: String!
+  "Optional description explaining the collection's purpose"
   description: String
+  "Optional icon identifier for UI display"
   icon: String
+  "Optional color code for UI theming"
   color: String
+  "Default locale for content (defaults to 'en')"
   defaultLocale: String = "en"
+  "List of supported locales for internationalization (defaults to ['en'])"
   supportedLocales: [String!] = ["en"]
+  "Whether this collection supports multiple languages (defaults to false)"
   isLocalized: Boolean! = false
+  "Field definitions that define the collection's schema"
   fields: [CreateFieldInput!]!
 }
 
-# The "Query" type is special: it lists all of the available queries that
-# clients can execute, along with the return type for each. In this
-# case, the "books" query returns an array of zero or more Books (defined above).
+"""
+Root query type that defines all available read operations.
+Clients use these queries to fetch data from the API.
+"""
 type Query {
+  "Retrieve a specific collection by its name"
   collection(name: String!): Collection
-
-  
-
 }
 
-# Mutations for creating, updating, and deleting data
+"""
+Root mutation type that defines all available write operations.
+Clients use these mutations to create, update, and delete data.
+"""
 type Mutation {
+  "Create a new collection with the provided schema definition"
   createCollection(input: CreateCollectionInput!): Collection!
 }

@@ -1,4 +1,4 @@
-import type { FieldFilter } from '../../.graphql/resolvers-types.js';
+import type { FieldFilter } from '$graphql/resolvers-types.js';
 import type { GraphQLResolveInfo, FieldNode } from 'graphql';
 
 export function extractFieldFiltersFromSelectionSet(info: GraphQLResolveInfo): Array<{ fieldName: string; filter: FieldFilter }> {

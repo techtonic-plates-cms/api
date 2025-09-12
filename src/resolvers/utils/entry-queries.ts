@@ -292,12 +292,3 @@ export async function getEntriesWithFieldFilters(
   return await query.where(and(...whereConditions));
 }
 
-export async function checkEntryMatchesFieldFilters(
-  entryId: string, 
-  collectionId: string, 
-  fieldFilters: Array<{ fieldName: string; filter: FieldFilter }>
-): Promise<boolean> {
-  // This function is now deprecated in favor of database-level filtering
-  // but kept for any remaining usage
-  return true;
-}

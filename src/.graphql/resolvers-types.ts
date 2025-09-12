@@ -18,241 +18,475 @@ export type Scalars = {
   Float: { input: number; output: number; }
 };
 
+/**
+ * File asset with metadata and storage information.
+ * Represents uploaded files like images, documents, videos, etc.
+ */
 export type Asset = {
   __typename?: 'Asset';
+  /** Alternative text for accessibility */
   alt?: Maybe<Scalars['String']['output']>;
+  /** Optional caption or description */
   caption?: Maybe<Scalars['String']['output']>;
+  /** File size in bytes */
   fileSize: Scalars['Int']['output'];
+  /** Original filename when uploaded */
   filename: Scalars['String']['output'];
+  /** Unique identifier for the asset */
   id: Scalars['ID']['output'];
+  /** MIME type of the file (e.g., image/jpeg, application/pdf) */
   mimeType: Scalars['String']['output'];
+  /** Storage path or URL to the file */
   path: Scalars['String']['output'];
 };
 
+/**
+ * Filtering options for asset field values.
+ * Allows filtering on asset metadata properties.
+ */
 export type AssetFilter = {
+  /** Filter by alt text */
   alt?: InputMaybe<TextFilter>;
+  /** Filter by caption */
   caption?: InputMaybe<TextFilter>;
+  /** Filter by file size in bytes */
   fileSize?: InputMaybe<NumberFilter>;
+  /** Filter by filename */
   filename?: InputMaybe<TextFilter>;
+  /** Filter by MIME type */
   mimeType?: InputMaybe<TextFilter>;
 };
 
+/** Filtering options for boolean field values. */
 export type BooleanFilter = {
+  /** Exactly equal to (true or false) */
   eq?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Not equal to */
   ne?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+/** Boolean value container for true/false fields. */
 export type BooleanValue = {
   __typename?: 'BooleanValue';
+  /** The boolean value */
   value?: Maybe<Scalars['Boolean']['output']>;
 };
 
+/**
+ * A content collection that groups related entries together with a defined schema.
+ * Collections serve as containers for structured data with customizable fields.
+ */
 export type Collection = {
   __typename?: 'Collection';
+  /** ISO 8601 timestamp when the collection was created */
   createdAt?: Maybe<Scalars['String']['output']>;
+  /** Username or ID of the user who created this collection */
   createdBy?: Maybe<Scalars['String']['output']>;
+  /** Optional description explaining the purpose of this collection */
   description?: Maybe<Scalars['String']['output']>;
+  /** All entries belonging to this collection, with optional filtering */
   entries: Array<Entry>;
+  /** Schema definition - list of fields that define the structure of entries in this collection */
   fields: Array<Field>;
+  /** Unique identifier for the collection */
   id: Scalars['ID']['output'];
+  /** Human-readable name of the collection */
   name: Scalars['String']['output'];
+  /** URL-friendly identifier used for routing and references */
   slug: Scalars['String']['output'];
+  /** ISO 8601 timestamp when the collection was last modified */
   updatedAt?: Maybe<Scalars['String']['output']>;
 };
 
 
+/**
+ * A content collection that groups related entries together with a defined schema.
+ * Collections serve as containers for structured data with customizable fields.
+ */
 export type CollectionEntriesArgs = {
   filter?: InputMaybe<EntryFilter>;
 };
 
+/**
+ * Input for creating a new collection with its field definitions.
+ * Defines the collection metadata and schema structure.
+ */
 export type CreateCollectionInput = {
+  /** Optional color code for UI theming */
   color?: InputMaybe<Scalars['String']['input']>;
+  /** Default locale for content (defaults to 'en') */
   defaultLocale?: InputMaybe<Scalars['String']['input']>;
+  /** Optional description explaining the collection's purpose */
   description?: InputMaybe<Scalars['String']['input']>;
+  /** Field definitions that define the collection's schema */
   fields: Array<CreateFieldInput>;
+  /** Optional icon identifier for UI display */
   icon?: InputMaybe<Scalars['String']['input']>;
+  /** Whether this collection supports multiple languages (defaults to false) */
   isLocalized?: Scalars['Boolean']['input'];
+  /** Human-readable name for the collection */
   name: Scalars['String']['input'];
+  /** URL-friendly identifier for the collection */
   slug: Scalars['String']['input'];
+  /** List of supported locales for internationalization (defaults to ['en']) */
   supportedLocales?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
+/**
+ * Input for creating a new field within a collection.
+ * Defines the structure and constraints for the field.
+ */
 export type CreateFieldInput = {
+  /** Data type that this field will store */
   dataType: DataType;
+  /** Whether the field must have a value (defaults to false) */
   isRequired?: Scalars['Boolean']['input'];
+  /** Whether field values must be unique across entries (defaults to false) */
   isUnique?: Scalars['Boolean']['input'];
+  /** Human-readable display label */
   label?: InputMaybe<Scalars['String']['input']>;
+  /** Technical name for the field (used in API calls) */
   name: Scalars['String']['input'];
 };
 
+/**
+ * Supported data types for collection fields.
+ * Each type defines how data is stored, validated, and queried.
+ */
 export enum DataType {
+  /** File upload with metadata */
   Asset = 'ASSET',
+  /** True/false boolean value */
   Boolean = 'BOOLEAN',
+  /** ISO 8601 date and time string */
   DateTime = 'DATE_TIME',
+  /** Arbitrary JSON data with type information */
   Json = 'JSON',
+  /** Numeric integer value */
   Number = 'NUMBER',
+  /** Array of numeric values */
   NumberList = 'NUMBER_LIST',
+  /** Complex nested object structure */
   Object = 'OBJECT',
+  /** Reference to another entry in the system */
   Relation = 'RELATION',
+  /** Formatted text with markup (HTML, Markdown, etc.) */
   RichText = 'RICH_TEXT',
+  /** Plain text content */
   Text = 'TEXT',
+  /** Array of text strings */
   TextList = 'TEXT_LIST',
+  /** Typst markup text with raw and rendered versions */
   TypstText = 'TYPST_TEXT'
 }
 
+/** Date and time value container. */
 export type DateTime = {
   __typename?: 'DateTime';
+  /** ISO 8601 formatted date/time string */
   value?: Maybe<Scalars['String']['output']>;
 };
 
+/**
+ * Filtering options for date/time field values.
+ * All dates should be provided as ISO 8601 strings.
+ */
 export type DateTimeFilter = {
+  /** Exactly equal to this date/time */
   eq?: InputMaybe<Scalars['String']['input']>;
+  /** After this date/time */
   gt?: InputMaybe<Scalars['String']['input']>;
+  /** On or after this date/time */
   gte?: InputMaybe<Scalars['String']['input']>;
+  /** Before this date/time */
   lt?: InputMaybe<Scalars['String']['input']>;
+  /** On or before this date/time */
   lte?: InputMaybe<Scalars['String']['input']>;
+  /** Not equal to this date/time */
   ne?: InputMaybe<Scalars['String']['input']>;
 };
 
+/**
+ * A single record or content item within a collection.
+ * Entries contain the actual data values that conform to their collection's schema.
+ */
 export type Entry = {
   __typename?: 'Entry';
+  /** ISO 8601 timestamp when the entry was created */
   createdAt: Scalars['String']['output'];
+  /** Retrieve the value of a specific field by name, with optional filtering */
   field?: Maybe<FieldValue>;
+  /** Unique identifier for the entry */
   id: Scalars['ID']['output'];
+  /** Human-readable name or title of the entry */
   name: Scalars['String']['output'];
+  /** Optional URL-friendly identifier for the entry */
   slug?: Maybe<Scalars['String']['output']>;
+  /** Current status of the entry (e.g., draft, published, archived) */
   status: Scalars['String']['output'];
+  /** ISO 8601 timestamp when the entry was last modified */
   updatedAt: Scalars['String']['output'];
 };
 
 
+/**
+ * A single record or content item within a collection.
+ * Entries contain the actual data values that conform to their collection's schema.
+ */
 export type EntryFieldArgs = {
   filter?: InputMaybe<FieldFilter>;
   name: Scalars['String']['input'];
 };
 
+/**
+ * Filtering options for entries within a collection.
+ * Allows filtering by basic entry properties.
+ */
 export type EntryFilter = {
+  /** Filter by entry name (exact match) */
   name?: InputMaybe<Scalars['String']['input']>;
+  /** Filter by entry status */
   status?: InputMaybe<Scalars['String']['input']>;
 };
 
+/**
+ * A field definition that specifies the structure and constraints for data in a collection.
+ * Fields define what types of data can be stored and how they should be validated.
+ */
 export type Field = {
   __typename?: 'Field';
+  /** The data type that this field accepts */
   dataType: DataType;
+  /** Unique identifier for the field */
   id: Scalars['ID']['output'];
+  /** Whether this field must have a value when creating or updating entries */
   isRequired: Scalars['Boolean']['output'];
+  /** Whether values for this field must be unique across all entries in the collection */
   isUnique: Scalars['Boolean']['output'];
+  /** Human-readable display label for the field */
   label?: Maybe<Scalars['String']['output']>;
+  /** Technical name of the field, used for data storage and API access */
   name: Scalars['String']['output'];
 };
 
+/**
+ * Unified filter input that can contain filters for any field type.
+ * Only the filter matching the field's data type will be applied.
+ */
 export type FieldFilter = {
+  /** Filter for asset fields */
   asset?: InputMaybe<AssetFilter>;
+  /** Filter for boolean fields */
   boolean?: InputMaybe<BooleanFilter>;
+  /** Filter for date/time fields */
   dateTime?: InputMaybe<DateTimeFilter>;
+  /** Filter for JSON fields */
   json?: InputMaybe<JsonFilter>;
+  /** Filter for number fields */
   number?: InputMaybe<NumberFilter>;
+  /** Filter for relation fields */
   relation?: InputMaybe<RelationFilter>;
+  /** Filter for rich text fields */
   richText?: InputMaybe<RichTextFilter>;
+  /** Filter for text fields */
   text?: InputMaybe<TextFilter>;
+  /** Filter for Typst text fields */
   typstText?: InputMaybe<TypstTextFilter>;
 };
 
+/**
+ * Union of all possible field value types.
+ * The actual type returned depends on the field's DataType definition.
+ */
 export type FieldValue = Asset | BooleanValue | DateTime | Json | NumberValue | Relation | RichText | Text | TypstText;
 
+/**
+ * JSON data container with type information.
+ * Stores arbitrary structured data as JSON strings.
+ */
 export type Json = {
   __typename?: 'Json';
+  /** JSON-encoded string representation of the data */
   value: Scalars['String']['output'];
+  /** Type information about the JSON structure */
   valueType: Scalars['String']['output'];
 };
 
+/**
+ * Filtering options for JSON field values.
+ * Currently supports filtering by value type, with room for expansion.
+ */
 export type JsonFilter = {
+  /** Filter by the type of JSON structure stored */
   valueType?: InputMaybe<TextFilter>;
 };
 
+/**
+ * Root mutation type that defines all available write operations.
+ * Clients use these mutations to create, update, and delete data.
+ */
 export type Mutation = {
   __typename?: 'Mutation';
+  /** Create a new collection with the provided schema definition */
   createCollection: Collection;
 };
 
 
+/**
+ * Root mutation type that defines all available write operations.
+ * Clients use these mutations to create, update, and delete data.
+ */
 export type MutationCreateCollectionArgs = {
   input: CreateCollectionInput;
 };
 
+/**
+ * Filtering options for numeric field values.
+ * Supports comparison and range operations.
+ */
 export type NumberFilter = {
+  /** Exactly equal to */
   eq?: InputMaybe<Scalars['Int']['input']>;
+  /** Greater than */
   gt?: InputMaybe<Scalars['Int']['input']>;
+  /** Greater than or equal to */
   gte?: InputMaybe<Scalars['Int']['input']>;
+  /** Value is in the provided list */
   in?: InputMaybe<Array<Scalars['Int']['input']>>;
+  /** Less than */
   lt?: InputMaybe<Scalars['Int']['input']>;
+  /** Less than or equal to */
   lte?: InputMaybe<Scalars['Int']['input']>;
+  /** Not equal to */
   ne?: InputMaybe<Scalars['Int']['input']>;
+  /** Value is not in the provided list */
   notIn?: InputMaybe<Array<Scalars['Int']['input']>>;
 };
 
+/** Numeric value container for integer fields. */
 export type NumberValue = {
   __typename?: 'NumberValue';
+  /** The numeric value */
   value?: Maybe<Scalars['Int']['output']>;
 };
 
+/**
+ * Root query type that defines all available read operations.
+ * Clients use these queries to fetch data from the API.
+ */
 export type Query = {
   __typename?: 'Query';
+  /** Retrieve a specific collection by its name */
   collection?: Maybe<Collection>;
 };
 
 
+/**
+ * Root query type that defines all available read operations.
+ * Clients use these queries to fetch data from the API.
+ */
 export type QueryCollectionArgs = {
   name: Scalars['String']['input'];
 };
 
+/**
+ * Reference to another entry in the system.
+ * Enables relationships between different content items.
+ */
 export type Relation = {
   __typename?: 'Relation';
+  /** The referenced entry */
   entry?: Maybe<Entry>;
 };
 
+/**
+ * Filtering options for relation field values.
+ * Allows filtering by properties of the referenced entry.
+ */
 export type RelationFilter = {
+  /** Filter by the ID of the referenced entry */
   entryId?: InputMaybe<Scalars['String']['input']>;
+  /** Filter by the name of the referenced entry */
   entryName?: InputMaybe<TextFilter>;
+  /** Filter by the status of the referenced entry */
   entryStatus?: InputMaybe<Scalars['String']['input']>;
 };
 
+/**
+ * Rich text content with formatting and markup support.
+ * Supports various formats like HTML, Markdown, etc.
+ */
 export type RichText = {
   __typename?: 'RichText';
+  /** Format type (html, markdown, etc.) */
   format: Scalars['String']['output'];
+  /** Raw source content with markup */
   raw: Scalars['String']['output'];
+  /** Rendered HTML or formatted output */
   rendered: Scalars['String']['output'];
 };
 
+/**
+ * Filtering options for rich text field values.
+ * Allows filtering on both raw and rendered content.
+ */
 export type RichTextFilter = {
+  /** Filter by format type */
   format?: InputMaybe<TextFilter>;
+  /** Filter by raw source content */
   raw?: InputMaybe<TextFilter>;
+  /** Filter by rendered HTML content */
   rendered?: InputMaybe<TextFilter>;
 };
 
+/** Plain text field value container. */
 export type Text = {
   __typename?: 'Text';
+  /** The text content */
   text?: Maybe<Scalars['String']['output']>;
 };
 
+/**
+ * Filtering options for text field values.
+ * Supports various string matching operations.
+ */
 export type TextFilter = {
+  /** Contains substring */
   contains?: InputMaybe<Scalars['String']['input']>;
+  /** Ends with suffix */
   endsWith?: InputMaybe<Scalars['String']['input']>;
+  /** Exact match */
   eq?: InputMaybe<Scalars['String']['input']>;
+  /** Value is in the provided list */
   in?: InputMaybe<Array<Scalars['String']['input']>>;
+  /** Not equal to */
   ne?: InputMaybe<Scalars['String']['input']>;
+  /** Value is not in the provided list */
   notIn?: InputMaybe<Array<Scalars['String']['input']>>;
+  /** Starts with prefix */
   startsWith?: InputMaybe<Scalars['String']['input']>;
 };
 
+/**
+ * Typst markup text with both raw source and rendered output.
+ * Typst is a modern typesetting language for scientific documents.
+ */
 export type TypstText = {
   __typename?: 'TypstText';
+  /** Raw Typst markup source code */
   raw: Scalars['String']['output'];
+  /** Rendered output (HTML, PDF, or other format) */
   rendered: Scalars['String']['output'];
 };
 
+/**
+ * Filtering options for Typst text field values.
+ * Allows filtering on both source and rendered content.
+ */
 export type TypstTextFilter = {
+  /** Filter by raw Typst source code */
   raw?: InputMaybe<TextFilter>;
+  /** Filter by rendered output content */
   rendered?: InputMaybe<TextFilter>;
 };
 
