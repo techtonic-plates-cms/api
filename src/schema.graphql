@@ -339,7 +339,7 @@ input RelationFilter {
 Unified filter input that can contain filters for any field type.
 Only the filter matching the field's data type will be applied.
 """
-input FieldFilter {
+input FieldFilter @oneOf {
   "Filter for text fields"
   text: TextFilter
   "Filter for Typst text fields"
@@ -415,31 +415,148 @@ input CreateCollectionInput {
 }
 
 """
+Input for TEXT field values.
+"""
+input TextFieldInput {
+  "Plain text string value"
+  value: String!
+}
+
+"""
+Input for TYPST_TEXT field values.
+"""
+input TypstTextFieldInput {
+  "Raw Typst markup source code"
+  raw: String!
+  "Rendered output (HTML, PDF, or other format)"
+  rendered: String!
+}
+
+"""
+Input for BOOLEAN field values.
+"""
+input BooleanFieldInput {
+  "Boolean value"
+  value: Boolean!
+}
+
+"""
+Input for NUMBER field values.
+"""
+input NumberFieldInput {
+  "Integer value"
+  value: Int!
+}
+
+"""
+Input for DATE_TIME field values.
+"""
+input DateTimeFieldInput {
+  "ISO 8601 formatted date/time string"
+  value: String!
+}
+
+"""
+Input for RELATION field values.
+"""
+input RelationFieldInput {
+  "UUID of the entry to reference"
+  entryId: ID!
+}
+
+"""
+Input for ASSET field values.
+"""
+input AssetFieldInput {
+  "UUID of the asset to reference"
+  assetId: ID!
+}
+
+"""
+Input for RICH_TEXT field values.
+"""
+input RichTextFieldInput {
+  "Raw source content with markup"
+  raw: String!
+  "Rendered HTML or formatted output"
+  rendered: String!
+  "Format type (defaults to 'markdown')"
+  format: String = "markdown"
+}
+
+"""
+Input for OBJECT field values.
+"""
+input ObjectFieldInput {
+  "JSON-encoded string representation of the object"
+  value: JSON!
+}
+
+"""
+Input for TEXT_LIST field values.
+"""
+input TextListFieldInput {
+  "Array of text strings"
+  value: [String!]!
+}
+
+"""
+Input for NUMBER_LIST field values.
+"""
+input NumberListFieldInput {
+  "Array of integer values"
+  value: [Int!]!
+}
+
+"""
+Input for JSON field values.
+"""
+input JsonFieldInput {
+  "Arbitrary JSON data"
+  value: JSON!
+}
+
+"""
+Union of all possible field value input types.
+Use the input type that matches your field's DataType.
+"""
+input CreateEntryFieldValueInput @oneOf {
+  "Value for TEXT fields"
+  text: TextFieldInput
+  "Value for TYPST_TEXT fields"
+  typstText: TypstTextFieldInput
+  "Value for BOOLEAN fields"
+  boolean: BooleanFieldInput
+  "Value for NUMBER fields"
+  number: NumberFieldInput
+  "Value for DATE_TIME fields"
+  dateTime: DateTimeFieldInput
+  "Value for RELATION fields"
+  relation: RelationFieldInput
+  "Value for ASSET fields"
+  asset: AssetFieldInput
+  "Value for RICH_TEXT fields"
+  richText: RichTextFieldInput
+  "Value for OBJECT fields"
+  object: ObjectFieldInput
+  "Value for TEXT_LIST fields"
+  textList: TextListFieldInput
+  "Value for NUMBER_LIST fields"
+  numberList: NumberListFieldInput
+  "Value for JSON fields"
+  json: JsonFieldInput
+}
+
+"""
 Represents a field value for creating an entry.
 The field name must correspond to a field defined in the collection schema.
-The value should be a JSON scalar that will be decoded based on the field's DataType.
-
-Value format by DataType:
-- TEXT: "Simple text string"
-- TYPST_TEXT: {"raw": "source code", "rendered": "rendered output"}
-- BOOLEAN: true | false
-- NUMBER: 42 (integer)
-- DATE_TIME: "2023-12-25T10:30:00Z" (ISO 8601 string)
-- RELATION: "entry-uuid-to-reference"
-- ASSET: "asset-uuid-to-reference"
-- RICH_TEXT: {"raw": "markdown source", "rendered": "html output", "format": "markdown"}
-- TEXT_LIST: ["array", "of", "strings"]
-- NUMBER_LIST: [1, 2, 3, 4, 5]
-- JSON: {"arbitrary": "json", "data": true}
+The value input must match the field's DataType.
 """
 input CreateEntryFieldInput {
   "Name of the field as defined in the collection schema"
   field: String!
-  """
-  JSON scalar value that will be decoded based on the field's DataType.
-  See the input description above for the expected format for each DataType.
-  """
-  value: JSON!
+  "Typed value input that must match the field's DataType"
+  value: CreateEntryFieldValueInput!
 }
 
 """
@@ -449,8 +566,8 @@ Defines the entry metadata and field values.
 input CreateEntryInput {
   "Human-readable name or title of the entry"
   name: String!
-  "ID of the collection this entry belongs to"
-  collectionId: ID!
+  "Name of the collection this entry belongs to"
+  collectionName: String!
   "Optional URL-friendly identifier for the entry"
   slug: String
   "Entry status (defaults to 'DRAFT')"

@@ -23,57 +23,70 @@ import {
 } from '$db/schema';
 import { eq, and } from 'drizzle-orm';
 
-// Helper function to decode JSON values based on DataType
-function decodeFieldValue(dataType: string, jsonValue: any): any {
+// Helper function to extract and validate typed field values
+function extractFieldValue(dataType: string, valueInput: any): any {
   try {
     switch (dataType.toLowerCase()) {
       case 'text':
-        return typeof jsonValue === 'string' ? jsonValue : String(jsonValue);
+        if (!valueInput.text) throw new Error('TEXT field requires text input');
+        return valueInput.text.value;
         
       case 'typst_text':
-        if (typeof jsonValue === 'object' && jsonValue.raw && jsonValue.rendered) {
-          return { raw: String(jsonValue.raw), rendered: String(jsonValue.rendered) };
-        }
-        throw new Error('TypstText value must be an object with "raw" and "rendered" properties');
+        if (!valueInput.typstText) throw new Error('TYPST_TEXT field requires typstText input');
+        return {
+          raw: valueInput.typstText.raw,
+          rendered: valueInput.typstText.rendered
+        };
         
       case 'boolean':
-        return Boolean(jsonValue);
+        if (!valueInput.boolean) throw new Error('BOOLEAN field requires boolean input');
+        return valueInput.boolean.value;
         
       case 'number':
-        const num = Number(jsonValue);
-        if (isNaN(num)) throw new Error('Invalid number value');
-        return Math.floor(num); // Ensure integer
+        if (!valueInput.number) throw new Error('NUMBER field requires number input');
+        return valueInput.number.value;
         
       case 'date_time':
-        return new Date(jsonValue);
+        if (!valueInput.dateTime) throw new Error('DATE_TIME field requires dateTime input');
+        return new Date(valueInput.dateTime.value);
         
       case 'relation':
-        return typeof jsonValue === 'string' ? jsonValue : String(jsonValue);
+        if (!valueInput.relation) throw new Error('RELATION field requires relation input');
+        return valueInput.relation.entryId;
         
       case 'asset':
-        return typeof jsonValue === 'string' ? jsonValue : String(jsonValue);
+        if (!valueInput.asset) throw new Error('ASSET field requires asset input');
+        return valueInput.asset.assetId;
         
       case 'rich_text':
-        if (typeof jsonValue === 'object' && jsonValue.raw && jsonValue.rendered) {
-          return { 
-            raw: String(jsonValue.raw), 
-            rendered: String(jsonValue.rendered),
-            format: jsonValue.format || 'markdown'
-          };
-        }
-        throw new Error('RichText value must be an object with "raw" and "rendered" properties');
+        if (!valueInput.richText) throw new Error('RICH_TEXT field requires richText input');
+        return {
+          raw: valueInput.richText.raw,
+          rendered: valueInput.richText.rendered,
+          format: valueInput.richText.format || 'markdown'
+        };
         
       case 'object':
+        if (!valueInput.object) throw new Error('OBJECT field requires object input');
+        return JSON.stringify(valueInput.object.value);
+        
       case 'text_list':
+        if (!valueInput.textList) throw new Error('TEXT_LIST field requires textList input');
+        return JSON.stringify(valueInput.textList.value);
+        
       case 'number_list':
+        if (!valueInput.numberList) throw new Error('NUMBER_LIST field requires numberList input');
+        return JSON.stringify(valueInput.numberList.value);
+        
       case 'json':
-        return JSON.stringify(jsonValue);
+        if (!valueInput.json) throw new Error('JSON field requires json input');
+        return JSON.stringify(valueInput.json.value);
         
       default:
         throw new Error(`Unknown data type: ${dataType}`);
     }
   } catch (error) {
-    throw new Error(`Failed to decode value for ${dataType}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(`Failed to extract value for ${dataType}: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
@@ -175,17 +188,17 @@ export const entryMutations: Pick<MutationResolvers, 'createEntry'> = {
       const [collection] = await db
         .select()
         .from(collectionsTable)
-        .where(eq(collectionsTable.id, input.collectionId));
+        .where(eq(collectionsTable.name, input.collectionName));
 
       if (!collection) {
-        throw new Error('Collection not found');
+        throw new Error(`Collection with name "${input.collectionName}" not found`);
       }
 
       // Get the collection's fields
       const collectionFields = await db
         .select()
         .from(fieldsTable)
-        .where(eq(fieldsTable.collectionId, input.collectionId));
+        .where(eq(fieldsTable.collectionId, collection.id));
 
       // Create a map of field names to field definitions for easier lookup
       const fieldMap = new Map(collectionFields.map(field => [field.name, field]));
@@ -210,7 +223,7 @@ export const entryMutations: Pick<MutationResolvers, 'createEntry'> = {
       // Create the entry first
       const [entry] = await db.insert(entriesTable).values({
         createdBy: userId,
-        collectionId: input.collectionId,
+        collectionId: collection.id,
         name: input.name,
         slug: input.slug || null,
         status: (input.status as any) || 'DRAFT',
@@ -227,11 +240,11 @@ export const entryMutations: Pick<MutationResolvers, 'createEntry'> = {
         const field = fieldMap.get(fieldInput.field)!;
         
         try {
-          // Decode the JSON value based on the field's data type
-          const decodedValue = decodeFieldValue(field.dataType, fieldInput.value);
+          // Extract the typed value based on the field's data type
+          const extractedValue = extractFieldValue(field.dataType, fieldInput.value);
           
           // Insert the value into the appropriate table
-          await insertFieldValue(entry.id, field.id, field.dataType, decodedValue);
+          await insertFieldValue(entry.id, field.id, field.dataType, extractedValue);
         } catch (error) {
           // Clean up the entry if field processing fails
           await db.delete(entriesTable).where(eq(entriesTable.id, entry.id));

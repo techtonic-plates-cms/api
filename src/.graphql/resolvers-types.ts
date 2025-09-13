@@ -41,6 +41,12 @@ export type Asset = {
   path: Scalars['String']['output'];
 };
 
+/** Input for ASSET field values. */
+export type AssetFieldInput = {
+  /** UUID of the asset to reference */
+  assetId: Scalars['ID']['input'];
+};
+
 /**
  * Filtering options for asset field values.
  * Allows filtering on asset metadata properties.
@@ -56,6 +62,12 @@ export type AssetFilter = {
   filename?: InputMaybe<TextFilter>;
   /** Filter by MIME type */
   mimeType?: InputMaybe<TextFilter>;
+};
+
+/** Input for BOOLEAN field values. */
+export type BooleanFieldInput = {
+  /** Boolean value */
+  value: Scalars['Boolean']['input'];
 };
 
 /** Filtering options for boolean field values. */
@@ -136,22 +148,52 @@ export type CreateCollectionInput = {
 /**
  * Represents a field value for creating an entry.
  * The field name must correspond to a field defined in the collection schema.
- * The value should be a JSON scalar that will be decoded based on the field's DataType.
+ * The value input must match the field's DataType.
  */
 export type CreateEntryFieldInput = {
   /** Name of the field as defined in the collection schema */
   field: Scalars['String']['input'];
-  /** JSON scalar value that will be decoded based on the field's DataType */
-  value: Scalars['JSON']['input'];
+  /** Typed value input that must match the field's DataType */
+  value: CreateEntryFieldValueInput;
 };
+
+/**
+ * Union of all possible field value input types.
+ * Use the input type that matches your field's DataType.
+ */
+export type CreateEntryFieldValueInput =
+  /** Value for ASSET fields */
+  { asset: AssetFieldInput; boolean?: never; dateTime?: never; json?: never; number?: never; numberList?: never; object?: never; relation?: never; richText?: never; text?: never; textList?: never; typstText?: never; }
+  |  /** Value for BOOLEAN fields */
+  { asset?: never; boolean: BooleanFieldInput; dateTime?: never; json?: never; number?: never; numberList?: never; object?: never; relation?: never; richText?: never; text?: never; textList?: never; typstText?: never; }
+  |  /** Value for DATE_TIME fields */
+  { asset?: never; boolean?: never; dateTime: DateTimeFieldInput; json?: never; number?: never; numberList?: never; object?: never; relation?: never; richText?: never; text?: never; textList?: never; typstText?: never; }
+  |  /** Value for JSON fields */
+  { asset?: never; boolean?: never; dateTime?: never; json: JsonFieldInput; number?: never; numberList?: never; object?: never; relation?: never; richText?: never; text?: never; textList?: never; typstText?: never; }
+  |  /** Value for NUMBER fields */
+  { asset?: never; boolean?: never; dateTime?: never; json?: never; number: NumberFieldInput; numberList?: never; object?: never; relation?: never; richText?: never; text?: never; textList?: never; typstText?: never; }
+  |  /** Value for NUMBER_LIST fields */
+  { asset?: never; boolean?: never; dateTime?: never; json?: never; number?: never; numberList: NumberListFieldInput; object?: never; relation?: never; richText?: never; text?: never; textList?: never; typstText?: never; }
+  |  /** Value for OBJECT fields */
+  { asset?: never; boolean?: never; dateTime?: never; json?: never; number?: never; numberList?: never; object: ObjectFieldInput; relation?: never; richText?: never; text?: never; textList?: never; typstText?: never; }
+  |  /** Value for RELATION fields */
+  { asset?: never; boolean?: never; dateTime?: never; json?: never; number?: never; numberList?: never; object?: never; relation: RelationFieldInput; richText?: never; text?: never; textList?: never; typstText?: never; }
+  |  /** Value for RICH_TEXT fields */
+  { asset?: never; boolean?: never; dateTime?: never; json?: never; number?: never; numberList?: never; object?: never; relation?: never; richText: RichTextFieldInput; text?: never; textList?: never; typstText?: never; }
+  |  /** Value for TEXT fields */
+  { asset?: never; boolean?: never; dateTime?: never; json?: never; number?: never; numberList?: never; object?: never; relation?: never; richText?: never; text: TextFieldInput; textList?: never; typstText?: never; }
+  |  /** Value for TEXT_LIST fields */
+  { asset?: never; boolean?: never; dateTime?: never; json?: never; number?: never; numberList?: never; object?: never; relation?: never; richText?: never; text?: never; textList: TextListFieldInput; typstText?: never; }
+  |  /** Value for TYPST_TEXT fields */
+  { asset?: never; boolean?: never; dateTime?: never; json?: never; number?: never; numberList?: never; object?: never; relation?: never; richText?: never; text?: never; textList?: never; typstText: TypstTextFieldInput; };
 
 /**
  * Input for creating a new entry in a collection.
  * Defines the entry metadata and field values.
  */
 export type CreateEntryInput = {
-  /** ID of the collection this entry belongs to */
-  collectionId: Scalars['ID']['input'];
+  /** Name of the collection this entry belongs to */
+  collectionName: Scalars['String']['input'];
   /** Default locale for this entry group (defaults to 'en') */
   defaultLocale?: InputMaybe<Scalars['String']['input']>;
   /** Field values for this entry */
@@ -219,6 +261,12 @@ export type DateTime = {
   __typename?: 'DateTime';
   /** ISO 8601 formatted date/time string */
   value?: Maybe<Scalars['String']['output']>;
+};
+
+/** Input for DATE_TIME field values. */
+export type DateTimeFieldInput = {
+  /** ISO 8601 formatted date/time string */
+  value: Scalars['String']['input'];
 };
 
 /**
@@ -307,26 +355,25 @@ export type Field = {
  * Unified filter input that can contain filters for any field type.
  * Only the filter matching the field's data type will be applied.
  */
-export type FieldFilter = {
+export type FieldFilter =
   /** Filter for asset fields */
-  asset?: InputMaybe<AssetFilter>;
-  /** Filter for boolean fields */
-  boolean?: InputMaybe<BooleanFilter>;
-  /** Filter for date/time fields */
-  dateTime?: InputMaybe<DateTimeFilter>;
-  /** Filter for JSON fields */
-  json?: InputMaybe<JsonFilter>;
-  /** Filter for number fields */
-  number?: InputMaybe<NumberFilter>;
-  /** Filter for relation fields */
-  relation?: InputMaybe<RelationFilter>;
-  /** Filter for rich text fields */
-  richText?: InputMaybe<RichTextFilter>;
-  /** Filter for text fields */
-  text?: InputMaybe<TextFilter>;
-  /** Filter for Typst text fields */
-  typstText?: InputMaybe<TypstTextFilter>;
-};
+  { asset: AssetFilter; boolean?: never; dateTime?: never; json?: never; number?: never; relation?: never; richText?: never; text?: never; typstText?: never; }
+  |  /** Filter for boolean fields */
+  { asset?: never; boolean: BooleanFilter; dateTime?: never; json?: never; number?: never; relation?: never; richText?: never; text?: never; typstText?: never; }
+  |  /** Filter for date/time fields */
+  { asset?: never; boolean?: never; dateTime: DateTimeFilter; json?: never; number?: never; relation?: never; richText?: never; text?: never; typstText?: never; }
+  |  /** Filter for JSON fields */
+  { asset?: never; boolean?: never; dateTime?: never; json: JsonFilter; number?: never; relation?: never; richText?: never; text?: never; typstText?: never; }
+  |  /** Filter for number fields */
+  { asset?: never; boolean?: never; dateTime?: never; json?: never; number: NumberFilter; relation?: never; richText?: never; text?: never; typstText?: never; }
+  |  /** Filter for relation fields */
+  { asset?: never; boolean?: never; dateTime?: never; json?: never; number?: never; relation: RelationFilter; richText?: never; text?: never; typstText?: never; }
+  |  /** Filter for rich text fields */
+  { asset?: never; boolean?: never; dateTime?: never; json?: never; number?: never; relation?: never; richText: RichTextFilter; text?: never; typstText?: never; }
+  |  /** Filter for text fields */
+  { asset?: never; boolean?: never; dateTime?: never; json?: never; number?: never; relation?: never; richText?: never; text: TextFilter; typstText?: never; }
+  |  /** Filter for Typst text fields */
+  { asset?: never; boolean?: never; dateTime?: never; json?: never; number?: never; relation?: never; richText?: never; text?: never; typstText: TypstTextFilter; };
 
 /**
  * Union of all possible field value types.
@@ -344,6 +391,12 @@ export type Json = {
   value: Scalars['String']['output'];
   /** Type information about the JSON structure */
   valueType: Scalars['String']['output'];
+};
+
+/** Input for JSON field values. */
+export type JsonFieldInput = {
+  /** Arbitrary JSON data */
+  value: Scalars['JSON']['input'];
 };
 
 /**
@@ -385,6 +438,12 @@ export type MutationCreateEntryArgs = {
   input: CreateEntryInput;
 };
 
+/** Input for NUMBER field values. */
+export type NumberFieldInput = {
+  /** Integer value */
+  value: Scalars['Int']['input'];
+};
+
 /**
  * Filtering options for numeric field values.
  * Supports comparison and range operations.
@@ -408,11 +467,23 @@ export type NumberFilter = {
   notIn?: InputMaybe<Array<Scalars['Int']['input']>>;
 };
 
+/** Input for NUMBER_LIST field values. */
+export type NumberListFieldInput = {
+  /** Array of integer values */
+  value: Array<Scalars['Int']['input']>;
+};
+
 /** Numeric value container for integer fields. */
 export type NumberValue = {
   __typename?: 'NumberValue';
   /** The numeric value */
   value?: Maybe<Scalars['Int']['output']>;
+};
+
+/** Input for OBJECT field values. */
+export type ObjectFieldInput = {
+  /** JSON-encoded string representation of the object */
+  value: Scalars['JSON']['input'];
 };
 
 /**
@@ -444,6 +515,12 @@ export type Relation = {
   entry?: Maybe<Entry>;
 };
 
+/** Input for RELATION field values. */
+export type RelationFieldInput = {
+  /** UUID of the entry to reference */
+  entryId: Scalars['ID']['input'];
+};
+
 /**
  * Filtering options for relation field values.
  * Allows filtering by properties of the referenced entry.
@@ -471,6 +548,16 @@ export type RichText = {
   rendered: Scalars['String']['output'];
 };
 
+/** Input for RICH_TEXT field values. */
+export type RichTextFieldInput = {
+  /** Format type (defaults to 'markdown') */
+  format?: InputMaybe<Scalars['String']['input']>;
+  /** Raw source content with markup */
+  raw: Scalars['String']['input'];
+  /** Rendered HTML or formatted output */
+  rendered: Scalars['String']['input'];
+};
+
 /**
  * Filtering options for rich text field values.
  * Allows filtering on both raw and rendered content.
@@ -489,6 +576,12 @@ export type Text = {
   __typename?: 'Text';
   /** The text content */
   text?: Maybe<Scalars['String']['output']>;
+};
+
+/** Input for TEXT field values. */
+export type TextFieldInput = {
+  /** Plain text string value */
+  value: Scalars['String']['input'];
 };
 
 /**
@@ -512,6 +605,12 @@ export type TextFilter = {
   startsWith?: InputMaybe<Scalars['String']['input']>;
 };
 
+/** Input for TEXT_LIST field values. */
+export type TextListFieldInput = {
+  /** Array of text strings */
+  value: Array<Scalars['String']['input']>;
+};
+
 /**
  * Typst markup text with both raw source and rendered output.
  * Typst is a modern typesetting language for scientific documents.
@@ -522,6 +621,14 @@ export type TypstText = {
   raw: Scalars['String']['output'];
   /** Rendered output (HTML, PDF, or other format) */
   rendered: Scalars['String']['output'];
+};
+
+/** Input for TYPST_TEXT field values. */
+export type TypstTextFieldInput = {
+  /** Raw Typst markup source code */
+  raw: Scalars['String']['input'];
+  /** Rendered output (HTML, PDF, or other format) */
+  rendered: Scalars['String']['input'];
 };
 
 /**
@@ -624,17 +731,21 @@ export type ResolversUnionTypes<_RefType extends Record<string, unknown>> = Reso
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = ResolversObject<{
   Asset: ResolverTypeWrapper<Asset>;
+  AssetFieldInput: AssetFieldInput;
   AssetFilter: AssetFilter;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
+  BooleanFieldInput: BooleanFieldInput;
   BooleanFilter: BooleanFilter;
   BooleanValue: ResolverTypeWrapper<BooleanValue>;
   Collection: ResolverTypeWrapper<Omit<Collection, 'entries'> & { entries: Array<ResolversTypes['Entry']> }>;
   CreateCollectionInput: CreateCollectionInput;
   CreateEntryFieldInput: CreateEntryFieldInput;
+  CreateEntryFieldValueInput: CreateEntryFieldValueInput;
   CreateEntryInput: CreateEntryInput;
   CreateFieldInput: CreateFieldInput;
   DataType: DataType;
   DateTime: ResolverTypeWrapper<DateTime>;
+  DateTimeFieldInput: DateTimeFieldInput;
   DateTimeFilter: DateTimeFilter;
   Entry: ResolverTypeWrapper<Omit<Entry, 'field'> & { field?: Maybe<ResolversTypes['FieldValue']> }>;
   EntryFilter: EntryFilter;
@@ -645,35 +756,48 @@ export type ResolversTypes = ResolversObject<{
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   JSON: ResolverTypeWrapper<Scalars['JSON']['output']>;
   Json: ResolverTypeWrapper<Json>;
+  JsonFieldInput: JsonFieldInput;
   JsonFilter: JsonFilter;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
+  NumberFieldInput: NumberFieldInput;
   NumberFilter: NumberFilter;
+  NumberListFieldInput: NumberListFieldInput;
   NumberValue: ResolverTypeWrapper<NumberValue>;
+  ObjectFieldInput: ObjectFieldInput;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
   Relation: ResolverTypeWrapper<Omit<Relation, 'entry'> & { entry?: Maybe<ResolversTypes['Entry']> }>;
+  RelationFieldInput: RelationFieldInput;
   RelationFilter: RelationFilter;
   RichText: ResolverTypeWrapper<RichText>;
+  RichTextFieldInput: RichTextFieldInput;
   RichTextFilter: RichTextFilter;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Text: ResolverTypeWrapper<Text>;
+  TextFieldInput: TextFieldInput;
   TextFilter: TextFilter;
+  TextListFieldInput: TextListFieldInput;
   TypstText: ResolverTypeWrapper<TypstText>;
+  TypstTextFieldInput: TypstTextFieldInput;
   TypstTextFilter: TypstTextFilter;
 }>;
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = ResolversObject<{
   Asset: Asset;
+  AssetFieldInput: AssetFieldInput;
   AssetFilter: AssetFilter;
   Boolean: Scalars['Boolean']['output'];
+  BooleanFieldInput: BooleanFieldInput;
   BooleanFilter: BooleanFilter;
   BooleanValue: BooleanValue;
   Collection: Omit<Collection, 'entries'> & { entries: Array<ResolversParentTypes['Entry']> };
   CreateCollectionInput: CreateCollectionInput;
   CreateEntryFieldInput: CreateEntryFieldInput;
+  CreateEntryFieldValueInput: CreateEntryFieldValueInput;
   CreateEntryInput: CreateEntryInput;
   CreateFieldInput: CreateFieldInput;
   DateTime: DateTime;
+  DateTimeFieldInput: DateTimeFieldInput;
   DateTimeFilter: DateTimeFilter;
   Entry: Omit<Entry, 'field'> & { field?: Maybe<ResolversParentTypes['FieldValue']> };
   EntryFilter: EntryFilter;
@@ -684,19 +808,28 @@ export type ResolversParentTypes = ResolversObject<{
   Int: Scalars['Int']['output'];
   JSON: Scalars['JSON']['output'];
   Json: Json;
+  JsonFieldInput: JsonFieldInput;
   JsonFilter: JsonFilter;
   Mutation: Record<PropertyKey, never>;
+  NumberFieldInput: NumberFieldInput;
   NumberFilter: NumberFilter;
+  NumberListFieldInput: NumberListFieldInput;
   NumberValue: NumberValue;
+  ObjectFieldInput: ObjectFieldInput;
   Query: Record<PropertyKey, never>;
   Relation: Omit<Relation, 'entry'> & { entry?: Maybe<ResolversParentTypes['Entry']> };
+  RelationFieldInput: RelationFieldInput;
   RelationFilter: RelationFilter;
   RichText: RichText;
+  RichTextFieldInput: RichTextFieldInput;
   RichTextFilter: RichTextFilter;
   String: Scalars['String']['output'];
   Text: Text;
+  TextFieldInput: TextFieldInput;
   TextFilter: TextFilter;
+  TextListFieldInput: TextListFieldInput;
   TypstText: TypstText;
+  TypstTextFieldInput: TypstTextFieldInput;
   TypstTextFilter: TypstTextFilter;
 }>;
 
