@@ -5,4 +5,4 @@ export * from '../session';
 export { 
   sessionMiddleware, 
 
-} from './middleware';
+} from './sessionMiddleware';

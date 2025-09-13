@@ -12,9 +12,9 @@ import { GraphQLAuthError } from './permissions';
  */
 export function isAuthenticated(context: AppContext): context is AppContext & { 
   session: NonNullable<AppContext['session']>;
-  permissions: NonNullable<AppContext['permissions']>;
+  abacEvaluator: NonNullable<AppContext['abacEvaluator']>;
 } {
-  return !!(context.session && context.permissions && context.session.user.status === 'ACTIVE');
+  return !!(context.session && context.abacEvaluator && context.session.user.status === 'ACTIVE');
 }
 
 /**
@@ -26,27 +26,27 @@ export function getCurrentUser(context: AppContext) {
 }
 
 /**
- * Check if user has permission (non-throwing)
- * Returns boolean
+ * Check if user has permission (non-throwing, async)
+ * Returns Promise<boolean>
  */
-export function hasPermission(
+export async function hasPermission(
   context: AppContext,
-  resource: string,
-  action: string,
-  fieldScope?: string[]
-): boolean {
+  resourceType: string,
+  actionType: string,
+  resourceData?: Record<string, any>
+): Promise<boolean> {
   if (!isAuthenticated(context)) {
     return false;
   }
   
-  return context.permissions.hasPermission(resource, action, fieldScope);
+  return context.abacEvaluator.hasPermission(resourceType, actionType, resourceData);
 }
 
 export function requireAuth(context: AppContext): asserts context is AppContext & { 
   session: NonNullable<AppContext['session']>;
-  permissions: NonNullable<AppContext['permissions']>;
+  abacEvaluator: NonNullable<AppContext['abacEvaluator']>;
 } {
-  if (!context.session || !context.permissions) {
+  if (!context.session || !context.abacEvaluator) {
     throw new GraphQLAuthError('Authentication required', 'UNAUTHENTICATED');
   }
   

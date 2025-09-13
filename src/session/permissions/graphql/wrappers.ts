@@ -16,7 +16,7 @@ export function withAuth<
     args: TArgs, 
     context: AppContext & { 
       session: NonNullable<AppContext['session']>;
-      permissions: NonNullable<AppContext['permissions']>;
+      abacEvaluator: NonNullable<AppContext['abacEvaluator']>;
     }, 
     info: GraphQLResolveInfo
   ) => TReturn
@@ -25,28 +25,37 @@ export function withAuth<
     requireAuth(context);
     return resolver(parent, args, context as AppContext & { 
       session: NonNullable<AppContext['session']>;
-      permissions: NonNullable<AppContext['permissions']>;
+      abacEvaluator: NonNullable<AppContext['abacEvaluator']>;
     }, info);
   };
 }
 
 /**
- * Utility to filter results based on permissions
+ * Utility to filter results based on ABAC permissions
  * Useful for field-level security in resolvers
+ * Note: This returns a Promise since ABAC evaluation is async
  */
-export function filterByPermission<T extends Record<string, any>>(
+export async function filterByPermission<T extends Record<string, any>>(
   context: AppContext,
   items: T[],
-  resource: string,
-  action: string,
-  getFieldScope?: (item: T) => string[]
-): T[] {
+  resourceType: string,
+  actionType: string,
+  getResourceData?: (item: T) => Record<string, any>
+): Promise<T[]> {
   if (!isAuthenticated(context)) {
     return [];
   }
   
-  return items.filter(item => {
-    const fieldScope = getFieldScope ? getFieldScope(item) : undefined;
-    return context!.permissions!.hasPermission(resource, action, fieldScope);
-  });
+  const filteredItems: T[] = [];
+  
+  for (const item of items) {
+    const resourceData = getResourceData ? getResourceData(item) : { id: item.id };
+    const hasPermission = await context.abacEvaluator!.hasPermission(resourceType, actionType, resourceData);
+    
+    if (hasPermission) {
+      filteredItems.push(item);
+    }
+  }
+  
+  return filteredItems;
 }

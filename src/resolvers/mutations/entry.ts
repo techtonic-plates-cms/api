@@ -5,6 +5,7 @@ import {
 } from '#/session/';
 import {
   requirePermission,
+  requireFieldPermission,
 } from "#/session/permissions"
 import { db } from '$db/index';
 import { 
@@ -180,7 +181,7 @@ export const entryMutations: Pick<MutationResolvers, 'createEntry'> = {
   async createEntry(_parent, { input }, context) {
     // Require authentication and permission to create entries
     requireAuth(context);
-    requirePermission(context, 'entries', 'create');
+    await requirePermission(context, 'entries', 'create');
     const userId = context.session!.user.id;
 
     try {
@@ -193,6 +194,11 @@ export const entryMutations: Pick<MutationResolvers, 'createEntry'> = {
       if (!collection) {
         throw new Error(`Collection with name "${input.collectionName}" not found`);
       }
+
+      // Check permission for this specific collection
+      await requirePermission(context, 'entries', 'create', {
+        collection: { id: collection.id, name: collection.name }
+      });
 
       // Get the collection's fields
       const collectionFields = await db
@@ -240,6 +246,17 @@ export const entryMutations: Pick<MutationResolvers, 'createEntry'> = {
         const field = fieldMap.get(fieldInput.field)!;
         
         try {
+          // Check field-level permission to create/write to this field
+          await requireFieldPermission(context, field.id, 'create', {
+            collection: { id: collection.id, name: collection.name },
+            field: { 
+              name: field.name, 
+              dataType: field.dataType,
+              sensitivityLevel: field.sensitivityLevel,
+              isPii: field.isPii 
+            }
+          });
+
           // Extract the typed value based on the field's data type
           const extractedValue = extractFieldValue(field.dataType, fieldInput.value);
           

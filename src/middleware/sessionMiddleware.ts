@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import { sessionManager, PermissionChecker } from '../session';
+import { sessionManager, AbacPolicyEvaluator } from '../session';
 import type { SessionData } from '../session';
 import { verifyAccessToken } from '../utils/jwt';
 
@@ -8,7 +8,7 @@ declare global {
   namespace Express {
     interface Request {
       session?: SessionData;
-      permissions?: PermissionChecker;
+      abacEvaluator?: AbacPolicyEvaluator;
     }
   }
 }
@@ -54,9 +54,9 @@ export const sessionMiddleware = async (
       return next();
     }
 
-    // Attach session data and permission checker to request
+    // Attach session data and ABAC evaluator to request
     req.session = sessionData;
-    req.permissions = new PermissionChecker(sessionData.user);
+    req.abacEvaluator = new AbacPolicyEvaluator(sessionData.user);
 
     next();
   } catch (error) {

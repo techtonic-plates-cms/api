@@ -8,13 +8,13 @@ import { resolvers } from './resolvers';
 import { authRouter } from './routes/auth';
 import { sessionMiddleware } from './middleware';
 import type { SessionData } from './session/types';
-import type { PermissionChecker } from './session/permissions';
+import type { AbacPolicyEvaluator } from './session/permissions';
 import { ensureAdminUser } from './utils/admin-setup';
 
 // Define and export the context interface for type generation
 export interface AppContext {
     session?: SessionData;
-    permissions?: PermissionChecker;
+    abacEvaluator?: AbacPolicyEvaluator;
     req: Request;
 }
 
@@ -51,17 +51,17 @@ app.use('/graphql', cors<cors.CorsRequest>(), express.json(), sessionMiddleware,
     context: async ({ req }) => {
         console.log('GraphQL context - Authorization header:', req.headers.authorization);
         console.log('GraphQL context - Session:', req.session ? 'Present' : 'Undefined');
-        console.log('GraphQL context - Permissions:', req.permissions ? 'Present' : 'Undefined');
+        console.log('GraphQL context - ABAC Evaluator:', req.abacEvaluator ? 'Present' : 'Undefined');
         return {
             session: req.session,
-            permissions: req.permissions,
+            abacEvaluator: req.abacEvaluator,
             req
         };
     }
 }));
 
 // Start the combined server
-const port = 4001;
+const port = 4000;
 app.listen(port, () => {
     console.log(`🚀 Server ready at http://localhost:${port}/`);
     console.log(`📊 GraphQL server ready at: http://localhost:${port}/graphql`);

@@ -24,12 +24,12 @@ export function extractFieldFiltersFromSelectionSet(info: GraphQLResolveInfo): A
       
       if (nameArg?.value.kind === 'StringValue' && filterArg?.value.kind === 'ObjectValue') {
         const fieldName = nameArg.value.value;
-        const filter: FieldFilter = {};
+        let filter: FieldFilter | null = null;
         
         // Parse nested filter object structure
         filterArg.value.fields.forEach((typeField) => {
           if (typeField.value.kind === 'ObjectValue') {
-            const filterType = typeField.name.value as keyof FieldFilter;
+            const filterType = typeField.name.value;
             const filterValues: any = {};
             
             typeField.value.fields.forEach((filterField) => {
@@ -49,11 +49,14 @@ export function extractFieldFiltersFromSelectionSet(info: GraphQLResolveInfo): A
               }
             });
             
-            (filter as any)[filterType] = filterValues;
+            // Construct a proper FieldFilter object based on the filter type
+            filter = { [filterType]: filterValues } as FieldFilter;
           }
         });
         
-        fieldFilters.push({ fieldName, filter });
+        if (filter) {
+          fieldFilters.push({ fieldName, filter });
+        }
       }
     }
   });

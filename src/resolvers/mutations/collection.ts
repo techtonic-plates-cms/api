@@ -81,7 +81,7 @@ export const collectionMutations: Pick<MutationResolvers, 'createCollection'> = 
   async createCollection(_parent, { input }, context) {
     // Require authentication and permission to create collections
     requireAuth(context);
-    requirePermission(context, 'collections', 'create');
+    await requirePermission(context, 'collections', 'create');
     const userId = context.session!.user.id;
   
     try {
@@ -104,13 +104,28 @@ export const collectionMutations: Pick<MutationResolvers, 'createCollection'> = 
 
       // Create the fields for the collection
       if (input.fields && input.fields.length > 0) {
+        // Check permission to configure fields/schema for collections
+        await requirePermission(context, 'collections', 'configure_fields', {
+          collection: { id: collection.id, name: collection.name }
+        });
+
         const fieldsData = input.fields.map(field => ({
           collectionId: collection.id,
           name: field.name,
           label: field.label || null,
+          description: null, // Could be added to input later
           dataType: mapDataTypeToDb(field.dataType) as any,
           isRequired: field.isRequired ?? false,
           isUnique: field.isUnique ?? false,
+          // Set defaults for new ABAC fields
+          isPublic: true,
+          isPii: false,
+          isEncrypted: false,
+          sensitivityLevel: 'PUBLIC',
+          validationRules: null,
+          defaultValue: null,
+          helpText: null,
+          createdBy: userId,
         }));
 
         await db.insert(fieldsTable).values(fieldsData);

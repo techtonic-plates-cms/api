@@ -5,12 +5,13 @@ import {
   usersTable, 
   userRolesTable, 
   rolesTable, 
-  rolePermissionsTable,
-  permissionsTable,
-  userPermissionsTable 
+  rolePoliciesTable,
+  abacPoliciesTable,
+  abacPolicyRulesTable,
+  userPoliciesTable 
 } from '../db/schema';
-import { eq, and } from 'drizzle-orm';
-import type { SessionData, SessionUser, UserRole, UserPermission, SessionConfig } from './types';
+import { eq, and, sql } from 'drizzle-orm';
+import type { SessionData, SessionUser, UserRole, SessionPolicy, SessionPolicyRule, SessionConfig } from './types';
 
 const DEFAULT_CONFIG: SessionConfig = {
   sessionTtl: 24 * 60 * 60, // 24 hours in seconds
@@ -182,84 +183,144 @@ export class SessionManager {
       return null;
     }
 
-    // Get user roles with permissions
+    // Get user roles (simplified - no permissions here)
     const userRoleData = await db
       .select({
         roleId: userRolesTable.roleId,
         roleName: rolesTable.name,
         roleDescription: rolesTable.description,
-        permissionId: permissionsTable.id,
-        resource: permissionsTable.resource,
-        action: permissionsTable.action,
-        scopeType: permissionsTable.scopeType,
-        fieldScope: permissionsTable.fieldScope,
       })
       .from(userRolesTable)
       .innerJoin(rolesTable, eq(userRolesTable.roleId, rolesTable.id))
-      .innerJoin(rolePermissionsTable, eq(rolesTable.id, rolePermissionsTable.roleId))
-      .innerJoin(permissionsTable, eq(rolePermissionsTable.permissionId, permissionsTable.id))
       .where(and(
         eq(userRolesTable.userId, userId),
-        // Only include active assignments (not expired)
-        // You might want to add expiry checks here
+        // TODO: Add expiry checks for role assignments
       ));
 
-    // Group permissions by role
-    const rolesMap = new Map<string, UserRole>();
-    for (const row of userRoleData) {
-      if (!rolesMap.has(row.roleId)) {
-        rolesMap.set(row.roleId, {
-          id: row.roleId,
-          name: row.roleName,
-          description: row.roleDescription || undefined,
-          permissions: []
+    const roles: UserRole[] = userRoleData.map(row => ({
+      id: row.roleId,
+      name: row.roleName,
+      description: row.roleDescription || undefined,
+    }));
+
+    // Get policies from roles
+    const rolePolicyData = await db
+      .select({
+        policyId: abacPoliciesTable.id,
+        policyName: abacPoliciesTable.name,
+        effect: abacPoliciesTable.effect,
+        priority: abacPoliciesTable.priority,
+        resourceType: abacPoliciesTable.resourceType,
+        actionType: abacPoliciesTable.actionType,
+        ruleConnector: abacPoliciesTable.ruleConnector,
+        isActive: abacPoliciesTable.isActive,
+        roleId: rolePoliciesTable.roleId,
+        // Rule data
+        ruleId: abacPolicyRulesTable.id,
+        attributePath: abacPolicyRulesTable.attributePath,
+        operator: abacPolicyRulesTable.operator,
+        expectedValue: abacPolicyRulesTable.expectedValue,
+        valueType: abacPolicyRulesTable.valueType,
+        ruleDescription: abacPolicyRulesTable.description,
+        ruleOrder: abacPolicyRulesTable.order,
+        ruleActive: abacPolicyRulesTable.isActive,
+      })
+      .from(userRolesTable)
+      .innerJoin(rolePoliciesTable, eq(userRolesTable.roleId, rolePoliciesTable.roleId))
+      .innerJoin(abacPoliciesTable, eq(rolePoliciesTable.policyId, abacPoliciesTable.id))
+      .leftJoin(abacPolicyRulesTable, eq(abacPoliciesTable.id, abacPolicyRulesTable.policyId))
+      .where(and(
+        eq(userRolesTable.userId, userId),
+        eq(abacPoliciesTable.isActive, true),
+        // TODO: Add expiry checks
+      ));
+
+    // Get direct user policies
+    const directPolicyData = await db
+      .select({
+        policyId: abacPoliciesTable.id,
+        policyName: abacPoliciesTable.name,
+        effect: abacPoliciesTable.effect,
+        priority: abacPoliciesTable.priority,
+        resourceType: abacPoliciesTable.resourceType,
+        actionType: abacPoliciesTable.actionType,
+        ruleConnector: abacPoliciesTable.ruleConnector,
+        isActive: abacPoliciesTable.isActive,
+        roleId: sql`NULL`.as('roleId'),
+        // Rule data
+        ruleId: abacPolicyRulesTable.id,
+        attributePath: abacPolicyRulesTable.attributePath,
+        operator: abacPolicyRulesTable.operator,
+        expectedValue: abacPolicyRulesTable.expectedValue,
+        valueType: abacPolicyRulesTable.valueType,
+        ruleDescription: abacPolicyRulesTable.description,
+        ruleOrder: abacPolicyRulesTable.order,
+        ruleActive: abacPolicyRulesTable.isActive,
+      })
+      .from(userPoliciesTable)
+      .innerJoin(abacPoliciesTable, eq(userPoliciesTable.policyId, abacPoliciesTable.id))
+      .leftJoin(abacPolicyRulesTable, eq(abacPoliciesTable.id, abacPolicyRulesTable.policyId))
+      .where(and(
+        eq(userPoliciesTable.userId, userId),
+        eq(abacPoliciesTable.isActive, true),
+        // TODO: Add expiry checks
+      ));
+
+    // Combine role and direct policies
+    const allPolicyData = [...rolePolicyData, ...directPolicyData];
+
+    // Group policies and their rules
+    const policiesMap = new Map<string, SessionPolicy>();
+    
+    for (const row of allPolicyData) {
+      if (!policiesMap.has(String(row.policyId))) {
+        policiesMap.set(String(row.policyId), {
+          id: String(row.policyId),
+          name: String(row.policyName),
+          effect: row.effect as 'ALLOW' | 'DENY',
+          priority: Number(row.priority),
+          resourceType: String(row.resourceType),
+          actionType: String(row.actionType),
+          ruleConnector: row.ruleConnector as 'AND' | 'OR',
+          rules: [],
+          source: row.roleId ? 'ROLE' : 'DIRECT',
+          roleId: row.roleId ? String(row.roleId) : undefined
         });
       }
+
+      const policy = policiesMap.get(String(row.policyId))!;
       
-      const role = rolesMap.get(row.roleId)!;
-      role.permissions.push({
-        id: row.permissionId,
-        resource: row.resource,
-        action: row.action,
-        scopeType: row.scopeType,
-        fieldScope: row.fieldScope || undefined,
-        granted: true
+      // Add rule if it exists and is active
+      if (row.ruleId && row.ruleActive) {
+        policy.rules.push({
+          id: String(row.ruleId),
+          attributePath: String(row.attributePath),
+          operator: String(row.operator),
+          expectedValue: String(row.expectedValue),
+          valueType: String(row.valueType),
+          description: row.ruleDescription ? String(row.ruleDescription) : undefined
+        });
+      }
+    }
+
+    // Sort rules within each policy by order
+    for (const policy of policiesMap.values()) {
+      policy.rules.sort((a, b) => {
+        // Find the order from the original data
+        const aOrder = Number(allPolicyData.find(row => row.ruleId === a.id)?.ruleOrder) || 0;
+        const bOrder = Number(allPolicyData.find(row => row.ruleId === b.id)?.ruleOrder) || 0;
+        return aOrder - bOrder;
       });
     }
 
-    // Get direct user permissions
-    const directPermissionData = await db
-      .select({
-        permissionId: permissionsTable.id,
-        resource: permissionsTable.resource,
-        action: permissionsTable.action,
-        scopeType: permissionsTable.scopeType,
-        fieldScope: permissionsTable.fieldScope,
-        granted: userPermissionsTable.granted,
-      })
-      .from(userPermissionsTable)
-      .innerJoin(permissionsTable, eq(userPermissionsTable.permissionId, permissionsTable.id))
-      .where(and(
-        eq(userPermissionsTable.userId, userId),
-        // Only include active assignments (not expired)
-        // You might want to add expiry checks here
-      ));
-
-    const directPermissions: UserPermission[] = directPermissionData.map(row => ({
-      id: row.permissionId,
-      resource: row.resource,
-      action: row.action,
-      scopeType: row.scopeType,
-      fieldScope: row.fieldScope || undefined,
-      granted: row.granted
-    }));
+    const policies = Array.from(policiesMap.values());
 
     return {
       id: user.id,
       name: user.name,
       status: user.status,
-      roles: Array.from(rolesMap.values()),
-      directPermissions
+      roles,
+      policies
     };
   }
 

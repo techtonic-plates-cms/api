@@ -5,6 +5,7 @@ export type {
   SessionData, 
   SessionUser, 
   UserRole, 
-  UserPermission, 
+  SessionPolicy,
+  SessionPolicyRule,
   SessionConfig 
 } from './types';

@@ -2,7 +2,7 @@ import { boolean, integer, pgEnum, pgTable, timestamp, uuid, varchar, text, prim
 import { sql } from "drizzle-orm";
 
 export const userStatusEnum = pgEnum("user_status", ["ACTIVE", "INACTIVE", "BANNED"]);
-export const scopeTypeEnum = pgEnum("scope_type", ["GLOBAL", "RESOURCE_SPECIFIC", "FIELD_SPECIFIC"]);
+export const scopeTypeEnum = pgEnum("scope_type", ["GLOBAL", "COLLECTION_SPECIFIC", "ENTRY_SPECIFIC", "FIELD_SPECIFIC"]);
 
 export const usersTable = pgTable("users", {
     id: uuid().primaryKey().defaultRandom(),
@@ -14,11 +14,101 @@ export const usersTable = pgTable("users", {
     status: userStatusEnum().notNull().default('ACTIVE'),
 });
 
-// Permission Actions (e.g., 'read', 'write', 'delete', 'execute')
-export const permissionActionEnum = pgEnum("permission_actions", ["create", "read", "update", "delete", "publish", "unpublish", "archive", "restore", "ban", "unban"]);
+// Permission Actions - granular actions for fine-grained control
+export const permissionActionEnum = pgEnum("permission_actions", [
+    // CRUD operations
+    "create", "read", "update", "delete",
+    // Publishing workflow
+    "publish", "unpublish", "schedule", 
+    // Status management
+    "archive", "restore", "draft",
+    // User management
+    "ban", "unban", "activate", "deactivate",
+    // Asset operations
+    "upload", "download", "transform",
+    // Collection management
+    "configure_fields", "manage_schema"
+]);
 
-// Permission Resources (e.g., 'users', 'posts', 'comments', 'api.users.profile')
-export const permissionResourceEnum = pgEnum("permission_resources", ["users", "collections", "entries", "assets"]);
+// Base resource types
+export const baseResourceEnum = pgEnum("base_resources", ["users", "collections", "entries", "assets", "fields"]);
+
+// Permission effect - whether permission grants or denies access
+export const permissionEffectEnum = pgEnum("permission_effect", ["ALLOW", "DENY"]);
+
+// Database-native ABAC: Type-safe attribute paths
+export const attributePathEnum = pgEnum("attribute_path", [
+    // Subject (user) attributes
+    "subject.id",
+    "subject.role", 
+    "subject.status",
+    "subject.createdAt",
+    
+    // Resource attributes - Collections
+    "resource.collection.id",
+    "resource.collection.slug",
+    "resource.collection.createdBy",
+    "resource.collection.isLocalized",
+    
+    // Resource attributes - Entries  
+    "resource.entry.id",
+    "resource.entry.status",
+    "resource.entry.createdBy", 
+    "resource.entry.collectionId",
+    "resource.entry.locale",
+    "resource.entry.publishedAt",
+    
+    // Resource attributes - Fields
+    "resource.field.id", 
+    "resource.field.name",
+    "resource.field.dataType",
+    "resource.field.sensitivityLevel",
+    "resource.field.isPii",
+    "resource.field.isPublic",
+    "resource.field.collectionId",
+    
+    // Resource attributes - Assets
+    "resource.asset.id",
+    "resource.asset.uploadedBy",
+    "resource.asset.mimeType",
+    "resource.asset.fileSize",
+    
+    // Environmental/Context attributes
+    "environment.currentTime",
+    "environment.ipAddress", 
+    "environment.userAgent",
+    
+    // Action attributes
+    "action.type"
+]);
+
+export const operatorEnum = pgEnum("operator", [
+    "eq",              // equals
+    "ne",              // not equals  
+    "in",              // in array
+    "not_in",          // not in array
+    "gt",              // greater than
+    "gte",             // greater than or equal
+    "lt",              // less than
+    "lte",             // less than or equal
+    "contains",        // string/array contains
+    "starts_with",     // string starts with
+    "ends_with",       // string ends with
+    "is_null",         // is null
+    "is_not_null",     // is not null
+    "regex"            // regex match
+]);
+
+export const valueTypeEnum = pgEnum("value_type", [
+    "string",
+    "number", 
+    "boolean",
+    "uuid",
+    "datetime",
+    "array"
+]);
+
+export const logicalOperatorEnum = pgEnum("logical_operator", ["AND", "OR"]);
 
 // Roles for grouping permissions
 export const rolesTable = pgTable("roles", {
@@ -29,17 +119,58 @@ export const rolesTable = pgTable("roles", {
     lastEditTime: timestamp({ mode: "date" }).notNull().defaultNow(),
 });
 
-// Permissions with scopes - the core of your permission system
-export const permissionsTable = pgTable("permissions", {
+// ABAC Policies - The main policy definition table
+export const abacPoliciesTable = pgTable("abac_policies", {
     id: uuid().primaryKey().defaultRandom(),
-    scopeType: scopeTypeEnum().notNull().default('GLOBAL'),
-    resource: permissionResourceEnum().notNull(), 
-    action: permissionActionEnum().notNull(),
-    fieldScope: text().array(),
-    description: varchar({ length: 1024 }),
-    creationTime: timestamp({ mode: "date" }).notNull().defaultNow(),
-    lastEditTime: timestamp({ mode: "date" }).notNull().defaultNow(),
-});
+    name: varchar({ length: 255 }).notNull().unique(),
+    description: text(),
+    
+    // Policy metadata
+    effect: permissionEffectEnum().notNull(), // ALLOW or DENY
+    priority: integer().notNull().default(100), // Higher number = higher priority for conflict resolution
+    isActive: boolean().notNull().default(true),
+    
+    // What this policy applies to
+    resourceType: baseResourceEnum().notNull(), // collections, entries, fields, assets
+    actionType: permissionActionEnum().notNull(), // create, read, update, delete, etc.
+    
+    // Policy evaluation logic connector (how rules within this policy are combined)
+    ruleConnector: logicalOperatorEnum().notNull().default('AND'), // All rules must match (AND) or any rule (OR)
+    
+    // Metadata
+    createdBy: uuid().notNull().references(() => usersTable.id),
+    createdAt: timestamp({ mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp({ mode: "date" }).notNull().defaultNow(),
+    lastEvaluatedAt: timestamp({ mode: "date" }),
+}, (table) => ({
+    resourceActionIndex: index().on(table.resourceType, table.actionType),
+    priorityIndex: index().on(table.priority),
+    activeIndex: index().on(table.isActive),
+    nameIndex: index().on(table.name),
+}));
+
+// ABAC Policy Rules - The individual conditions within each policy
+export const abacPolicyRulesTable = pgTable("abac_policy_rules", {
+    id: uuid().primaryKey().defaultRandom(),
+    policyId: uuid().notNull().references(() => abacPoliciesTable.id, { onDelete: "cascade" }),
+    
+    // The condition definition
+    attributePath: attributePathEnum().notNull(), // What attribute to check (e.g., "subject.role")
+    operator: operatorEnum().notNull(), // How to compare (eq, in, gt, etc.)
+    expectedValue: text().notNull(), // What value to compare against (stored as JSON)
+    valueType: valueTypeEnum().notNull(), // Type of the expected value for proper parsing
+    
+    // Rule metadata
+    description: varchar({ length: 512 }),
+    isActive: boolean().notNull().default(true),
+    order: integer().notNull().default(0), // Order of evaluation within the policy
+    
+    createdAt: timestamp({ mode: "date" }).notNull().defaultNow(),
+}, (table) => ({
+    policyRuleIndex: index().on(table.policyId, table.order),
+    attributeIndex: index().on(table.attributePath),
+    activeRulesIndex: index().on(table.policyId, table.isActive),
+}));
 
 // User-Role assignments
 export const userRolesTable = pgTable("user_roles", {
@@ -50,23 +181,115 @@ export const userRolesTable = pgTable("user_roles", {
     expiresAt: timestamp({ mode: "date" }),
 });
 
-// Role-Permission assignments
-export const rolePermissionsTable = pgTable("role_permissions", {
+// ABAC Role-Policy assignments
+export const rolePoliciesTable = pgTable("role_policies", {
     id: uuid().primaryKey().defaultRandom(),
-    roleId: uuid().notNull(),
-    permissionId: uuid().notNull(),
-    assignedAt: timestamp({ mode: "date" }).notNull().defaultNow(),
-});
-
-// Direct user permissions (for exceptions or specific grants)
-export const userPermissionsTable = pgTable("user_permissions", {
-    id: uuid().primaryKey().defaultRandom(),
-    userId: uuid().notNull(),
-    permissionId: uuid().notNull(),
-    granted: boolean().notNull().default(true), // true = grant, false = deny (for exceptions)
+    roleId: uuid().notNull().references(() => rolesTable.id, { onDelete: "cascade" }),
+    policyId: uuid().notNull().references(() => abacPoliciesTable.id, { onDelete: "cascade" }),
+    assignedBy: uuid().notNull().references(() => usersTable.id),
     assignedAt: timestamp({ mode: "date" }).notNull().defaultNow(),
     expiresAt: timestamp({ mode: "date" }),
-});
+    reason: varchar({ length: 512 }), // Why this policy was assigned to this role
+}, (table) => ({
+    rolePolicyIndex: index().on(table.roleId, table.policyId),
+    expirationIndex: index().on(table.expiresAt),
+    uniqueRolePolicy: unique().on(table.roleId, table.policyId),
+}));
+
+// ABAC Direct user-policy assignments (for exceptions or specific grants)
+export const userPoliciesTable = pgTable("user_policies", {
+    id: uuid().primaryKey().defaultRandom(),
+    userId: uuid().notNull().references(() => usersTable.id, { onDelete: "cascade" }),
+    policyId: uuid().notNull().references(() => abacPoliciesTable.id, { onDelete: "cascade" }),
+    assignedBy: uuid().notNull().references(() => usersTable.id),
+    assignedAt: timestamp({ mode: "date" }).notNull().defaultNow(),
+    expiresAt: timestamp({ mode: "date" }),
+    reason: varchar({ length: 512 }), // Audit trail - why this exception was made
+}, (table) => ({
+    userPolicyIndex: index().on(table.userId, table.policyId),
+    expirationIndex: index().on(table.expiresAt),
+    uniqueUserPolicy: unique().on(table.userId, table.policyId),
+}));
+
+
+// Resource ownership tracking for dynamic permissions
+export const resourceOwnershipsTable = pgTable("resource_ownerships", {
+    id: uuid().primaryKey().defaultRandom(),
+    resourceType: baseResourceEnum().notNull(),
+    resourceId: uuid().notNull(), // Generic resource ID
+    ownerId: uuid().notNull().references(() => usersTable.id, { onDelete: "cascade" }),
+    ownershipType: varchar({ length: 50 }).notNull().default('CREATOR'), // CREATOR, ASSIGNED, INHERITED
+    assignedBy: uuid().references(() => usersTable.id),
+    assignedAt: timestamp({ mode: "date" }).notNull().defaultNow(),
+    expiresAt: timestamp({ mode: "date" }),
+}, (table) => ({
+    resourceOwnerIndex: index().on(table.resourceType, table.resourceId, table.ownerId),
+    ownerResourceIndex: index().on(table.ownerId, table.resourceType),
+    expirationIndex: index().on(table.expiresAt),
+}));
+
+// ABAC Policy evaluation cache for performance optimization
+export const abacEvaluationCacheTable = pgTable("abac_evaluation_cache", {
+    id: uuid().primaryKey().defaultRandom(),
+    
+    // Request context
+    userId: uuid().notNull().references(() => usersTable.id, { onDelete: "cascade" }),
+    resourceType: baseResourceEnum().notNull(),
+    resourceId: uuid().notNull(),
+    actionType: permissionActionEnum().notNull(),
+    fieldId: uuid().references(() => fieldsTable.id, { onDelete: "cascade" }), // For field-specific checks
+    
+    // Evaluation result
+    decision: permissionEffectEnum().notNull(), // Final ALLOW/DENY decision
+    matchingPolicyIds: varchar({ length: 255 }).array().notNull(), // Which policies matched
+    evaluationTimeMs: integer().notNull(), // How long evaluation took
+    
+    // Cache metadata
+    computedAt: timestamp({ mode: "date" }).notNull().defaultNow(),
+    expiresAt: timestamp({ mode: "date" }).notNull(), // Cache TTL
+    contextChecksum: varchar({ length: 64 }).notNull(), // Hash of request context for cache invalidation
+    policyVersions: text().notNull(), // JSON of policy versions when cached
+}, (table) => ({
+    userResourceActionIndex: index().on(table.userId, table.resourceType, table.resourceId, table.actionType),
+    fieldEvaluationIndex: index().on(table.userId, table.fieldId, table.actionType),
+    expirationIndex: index().on(table.expiresAt),
+    contextChecksumIndex: index().on(table.contextChecksum),
+    decisionIndex: index().on(table.decision),
+}));
+
+// ABAC Policy evaluation audit log for compliance and debugging
+export const abacAuditTable = pgTable("abac_audit", {
+    id: uuid().primaryKey().defaultRandom(),
+    
+    // Request details
+    userId: uuid().notNull().references(() => usersTable.id),
+    requestedAction: permissionActionEnum().notNull(),
+    resourceType: baseResourceEnum().notNull(),
+    resourceId: uuid().notNull(),
+    fieldId: uuid().references(() => fieldsTable.id), // For field-specific requests
+    
+    // Evaluation details
+    decision: permissionEffectEnum().notNull(), // Final decision
+    evaluatedPolicyIds: varchar({ length: 255 }).array().notNull(), // All policies that were evaluated
+    matchingPolicyIds: varchar({ length: 255 }).array().notNull(), // Policies that matched conditions
+    decisionReason: text().notNull(), // Human-readable explanation of why decision was made
+    evaluationTimeMs: integer().notNull(), // Performance tracking
+    
+    // Context
+    requestContext: text().notNull(), // JSON of all attributes used in evaluation
+    ipAddress: varchar({ length: 45 }),
+    userAgent: varchar({ length: 512 }),
+    sessionId: varchar({ length: 255 }),
+    
+    // Metadata
+    timestamp: timestamp({ mode: "date" }).notNull().defaultNow(),
+}, (table) => ({
+    userTimestampIndex: index().on(table.userId, table.timestamp),
+    resourceAuditIndex: index().on(table.resourceType, table.resourceId, table.timestamp),
+    decisionIndex: index().on(table.decision, table.timestamp),
+    timestampIndex: index().on(table.timestamp),
+    performanceIndex: index().on(table.evaluationTimeMs),
+}));
 
 // Collection visibility and entry status enums
 export const entryStatusEnum = pgEnum("entry_status", ["DRAFT", "PUBLISHED", "ARCHIVED", "DELETED"]);
@@ -108,17 +331,37 @@ export const collectionsTable = pgTable("collections", {
     updatedAt: timestamp({ mode: "date" }).notNull().defaultNow(),
 });
 
-// Fields table
+// Fields table with enhanced permission support
 export const fieldsTable = pgTable("fields", {
     id: uuid().primaryKey().defaultRandom(),
     collectionId: uuid().notNull().references(() => collectionsTable.id, { onDelete: "cascade", onUpdate: "cascade" }),
     name: varchar({ length: 255 }).notNull(),
     label: varchar({ length: 255 }), // Display label for UI
+    description: text(), // Field description for documentation
     dataType: dataTypesEnum().notNull(),
     isRequired: boolean().notNull().default(false),
     isUnique: boolean().notNull().default(false),
+    
+    // Permission-related settings
+    isPublic: boolean().notNull().default(true), // Whether field is publicly readable
+    isPii: boolean().notNull().default(false), // Contains personally identifiable information
+    isEncrypted: boolean().notNull().default(false), // Should be encrypted at rest
+    sensitivityLevel: varchar({ length: 20 }).notNull().default('PUBLIC'), // PUBLIC, INTERNAL, CONFIDENTIAL, RESTRICTED
+    
+    // Validation and constraints
+    validationRules: text(), // JSON schema for validation
+    defaultValue: text(), // Default value as JSON
+    helpText: varchar({ length: 1024 }), // Help text for editors
+    
+    createdBy: uuid().notNull().references(() => usersTable.id),
     createdAt: timestamp({ mode: "date" }).notNull().defaultNow(),
-});
+    updatedAt: timestamp({ mode: "date" }).notNull().defaultNow(),
+}, (table) => ({
+    collectionFieldIndex: index().on(table.collectionId, table.name),
+    sensitivityIndex: index().on(table.sensitivityLevel),
+    piiIndex: index().on(table.isPii),
+    uniqueFieldName: unique().on(table.collectionId, table.name),
+}));
 
 // Entries table
 export const entriesTable = pgTable("entries", {

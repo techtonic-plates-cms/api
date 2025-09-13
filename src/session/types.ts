@@ -1,17 +1,30 @@
-export interface UserPermission {
+// ABAC Policy types for session
+export interface SessionPolicy {
   id: string;
-  resource: string;
-  action: string;
-  scopeType: 'GLOBAL' | 'RESOURCE_SPECIFIC' | 'FIELD_SPECIFIC';
-  fieldScope?: string[];
-  granted: boolean;
+  name: string;
+  effect: 'ALLOW' | 'DENY';
+  priority: number;
+  resourceType: string;
+  actionType: string;
+  ruleConnector: 'AND' | 'OR';
+  rules: SessionPolicyRule[];
+  source: 'ROLE' | 'DIRECT'; // How user got this policy
+  roleId?: string; // If from role, which role
+}
+
+export interface SessionPolicyRule {
+  id: string;
+  attributePath: string;
+  operator: string;
+  expectedValue: string; // JSON string
+  valueType: string;
+  description?: string;
 }
 
 export interface UserRole {
   id: string;
   name: string;
   description?: string;
-  permissions: UserPermission[];
 }
 
 export interface SessionUser {
@@ -19,7 +32,7 @@ export interface SessionUser {
   name: string;
   status: 'ACTIVE' | 'INACTIVE' | 'BANNED';
   roles: UserRole[];
-  directPermissions: UserPermission[];
+  policies: SessionPolicy[]; // All applicable policies (from roles + direct)
 }
 
 export interface SessionData {
