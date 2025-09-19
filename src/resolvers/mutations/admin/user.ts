@@ -1,5 +1,15 @@
 import type { AppContext } from '#/index';
-import type { MutationResolvers, UserStatus } from '$graphql/resolvers-types';
+import type {
+  MutationResolvers,
+  UserStatus,
+  ResolversParentTypes,
+  UserManagementMutationsCreateArgs,
+  UserManagementMutationsUpdateArgs,
+  UserManagementMutationsDeleteArgs,
+  UserManagementMutationsChangeStatusArgs,
+  UserManagementMutationsAssignRoleArgs,
+  UserManagementMutationsRemoveRoleArgs
+} from '$graphql/resolvers-types';
 import {
   requireAuth,
 } from '#/session/';
@@ -16,8 +26,12 @@ import {
 import { eq, and } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
 
-export const userMutations: Pick<MutationResolvers, 'createUser' | 'updateUser' | 'deleteUser' | 'changeUserStatus' | 'assignRole' | 'removeRole'> = {
-  async createUser(_parent, { input }, context) {
+export const userMutations = {
+  async createUser(
+    _parent: ResolversParentTypes['UserManagementMutations'],
+    { input }: UserManagementMutationsCreateArgs,
+    context: AppContext
+  ) {
     // Require authentication and permission to create users
     requireAuth(context);
     await requirePermission(context, 'users', 'create');
@@ -80,7 +94,11 @@ export const userMutations: Pick<MutationResolvers, 'createUser' | 'updateUser' 
     }
   },
 
-  async updateUser(_parent, { id, input }, context) {
+  async updateUser(
+    _parent: ResolversParentTypes['UserManagementMutations'],
+    { id, input }: UserManagementMutationsUpdateArgs,
+    context: AppContext
+  ) {
     // Check permissions - users can update themselves, admins can update anyone
     const currentUserId = context.session?.user.id;
 
@@ -178,7 +196,11 @@ export const userMutations: Pick<MutationResolvers, 'createUser' | 'updateUser' 
     }
   },
 
-  async deleteUser(_parent, { id }, context) {
+  async deleteUser(
+    _parent: ResolversParentTypes['UserManagementMutations'],
+    { id }: UserManagementMutationsDeleteArgs,
+    context: AppContext
+  ) {
     // Only admins can delete users
     await requirePermission(context, 'users', 'delete');
 
@@ -209,7 +231,11 @@ export const userMutations: Pick<MutationResolvers, 'createUser' | 'updateUser' 
     }
   },
 
-  async changeUserStatus(_parent, { id, status }, context) {
+  async changeUserStatus(
+    _parent: ResolversParentTypes['UserManagementMutations'],
+    { id, status }: UserManagementMutationsChangeStatusArgs,
+    context: AppContext
+  ) {
     // Check permissions for status changes
     const action = status === 'BANNED' ? 'ban' :
                   status === 'ACTIVE' ? 'activate' : 'deactivate';
@@ -252,7 +278,11 @@ export const userMutations: Pick<MutationResolvers, 'createUser' | 'updateUser' 
     }
   },
 
-  async assignRole(_parent, { userId, roleId, expiresAt }, context) {
+  async assignRole(
+    _parent: ResolversParentTypes['UserManagementMutations'],
+    { userId, roleId, expiresAt }: UserManagementMutationsAssignRoleArgs,
+    context: AppContext
+  ) {
     // Check permissions
     await requirePermission(context, 'users', 'update');
 
@@ -321,7 +351,11 @@ export const userMutations: Pick<MutationResolvers, 'createUser' | 'updateUser' 
     }
   },
 
-  async removeRole(_parent, { userId, roleId }, context) {
+  async removeRole(
+    _parent: ResolversParentTypes['UserManagementMutations'],
+    { userId, roleId }: UserManagementMutationsRemoveRoleArgs,
+    context: AppContext
+  ) {
     // Check permissions
     await requirePermission(context, 'users', 'update');
 

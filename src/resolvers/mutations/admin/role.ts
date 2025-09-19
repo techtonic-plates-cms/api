@@ -1,5 +1,13 @@
 import type { AppContext } from '#/index';
-import type { MutationResolvers } from '$graphql/resolvers-types';
+import type {
+  MutationResolvers,
+  ResolversParentTypes,
+  RoleManagementMutationsCreateArgs,
+  RoleManagementMutationsUpdateArgs,
+  RoleManagementMutationsDeleteArgs,
+  RoleManagementMutationsAssignPolicyArgs,
+  RoleManagementMutationsRemovePolicyArgs
+} from '$graphql/resolvers-types';
 import {
   requirePermission,
 } from "#/session/permissions"
@@ -11,8 +19,12 @@ import {
 } from '$db/schema';
 import { eq, and } from 'drizzle-orm';
 
-export const roleMutations: Pick<MutationResolvers, 'createRole' | 'updateRole' | 'deleteRole' | 'assignPolicyToRole' | 'removePolicyFromRole'> = {
-  async createRole(_parent, { input }, context) {
+export const roleMutations = {
+  async createRole(
+    _parent: ResolversParentTypes['RoleManagementMutations'],
+    { input }: RoleManagementMutationsCreateArgs,
+    context: AppContext
+  ) {
     // Check permissions
     await requirePermission(context, 'users', 'manage_schema');
 
@@ -60,7 +72,11 @@ export const roleMutations: Pick<MutationResolvers, 'createRole' | 'updateRole' 
     }
   },
 
-  async updateRole(_parent, { id, input }, context) {
+  async updateRole(
+    _parent: ResolversParentTypes['RoleManagementMutations'],
+    { id, input }: RoleManagementMutationsUpdateArgs,
+    context: AppContext
+  ) {
     // Check permissions
     await requirePermission(context, 'users', 'manage_schema');
 
@@ -132,7 +148,11 @@ export const roleMutations: Pick<MutationResolvers, 'createRole' | 'updateRole' 
     }
   },
 
-  async deleteRole(_parent, { id }, context) {
+  async deleteRole(
+    _parent: ResolversParentTypes['RoleManagementMutations'],
+    { id }: RoleManagementMutationsDeleteArgs,
+    context: AppContext
+  ) {
     // Check permissions
     await requirePermission(context, 'users', 'manage_schema');
 
@@ -169,7 +189,11 @@ export const roleMutations: Pick<MutationResolvers, 'createRole' | 'updateRole' 
     }
   },
 
-  async assignPolicyToRole(_parent, { policyId, roleId, reason, expiresAt }, context) {
+  async assignPolicyToRole(
+    _parent: ResolversParentTypes['RoleManagementMutations'],
+    { policyId, roleId, reason, expiresAt }: RoleManagementMutationsAssignPolicyArgs,
+    context: AppContext
+  ) {
     // Check permissions
     await requirePermission(context, 'users', 'manage_schema');
 
@@ -209,7 +233,11 @@ export const roleMutations: Pick<MutationResolvers, 'createRole' | 'updateRole' 
     }
   },
 
-  async removePolicyFromRole(_parent, { policyId, roleId }, context) {
+  async removePolicyFromRole(
+    _parent: ResolversParentTypes['RoleManagementMutations'],
+    { policyId, roleId }: RoleManagementMutationsRemovePolicyArgs,
+    context: AppContext
+  ) {
     // Check permissions
     await requirePermission(context, 'users', 'manage_schema');
 

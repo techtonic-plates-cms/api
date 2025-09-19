@@ -1,5 +1,5 @@
 import type { AppContext } from '#/index';
-import type { MutationResolvers } from '$graphql/resolvers-types';
+import type { MutationResolvers, ContentMutationsCreateCollectionArgs, ResolversParentTypes, CreateFieldInput } from '$graphql/resolvers-types';
 import { 
   requireAuth,
 } from '#/session/';
@@ -78,7 +78,7 @@ const mapDataTypeToDb = (graphqlType: DataType): string => {
 };
 
 export const collectionMutations: Pick<MutationResolvers, 'createCollection'> = {
-  async createCollection(_parent, { input }, context) {
+  async createCollection(_parent: ResolversParentTypes['Mutation'], { input }: ContentMutationsCreateCollectionArgs, context: AppContext) {
     // Require authentication and permission to create collections
     requireAuth(context);
     await requirePermission(context, 'collections', 'create');
@@ -109,7 +109,7 @@ export const collectionMutations: Pick<MutationResolvers, 'createCollection'> = 
           collection: { id: collection.id, name: collection.name }
         });
 
-        const fieldsData = input.fields.map(field => ({
+        const fieldsData = input.fields.map((field: CreateFieldInput) => ({
           collectionId: collection.id,
           name: field.name,
           label: field.label || null,

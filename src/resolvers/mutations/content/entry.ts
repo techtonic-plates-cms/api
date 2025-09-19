@@ -1,5 +1,5 @@
 import type { AppContext } from '#/index';
-import type { MutationResolvers } from '$graphql/resolvers-types';
+import type { MutationResolvers, ContentMutationsCreateEntryArgs, ResolversParentTypes, CreateEntryFieldInput } from '$graphql/resolvers-types';
 import { 
   requireAuth,
 } from '#/session/';
@@ -178,7 +178,7 @@ async function insertFieldValue(entryId: string, fieldId: string, dataType: stri
 }
 
 export const entryMutations: Pick<MutationResolvers, 'createEntry'> = {
-  async createEntry(_parent, { input }, context) {
+  async createEntry(_parent: ResolversParentTypes['Mutation'], { input }: ContentMutationsCreateEntryArgs, context: AppContext) {
     // Require authentication and permission to create entries
     requireAuth(context);
     await requirePermission(context, 'entries', 'create');
@@ -210,7 +210,7 @@ export const entryMutations: Pick<MutationResolvers, 'createEntry'> = {
       const fieldMap = new Map(collectionFields.map(field => [field.name, field]));
 
       // Validate required fields
-      const providedFieldNames = new Set(input.fields.map(f => f.field));
+      const providedFieldNames = new Set(input.fields.map((f: CreateEntryFieldInput) => f.field));
       const requiredFields = collectionFields.filter(field => field.isRequired);
       
       for (const requiredField of requiredFields) {

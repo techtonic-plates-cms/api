@@ -1,5 +1,22 @@
 import type { AppContext } from '#/index';
-import type { MutationResolvers, PolicyEffect, ResourceType, ActionType, RuleOperator, ValueType, LogicalOperator, UserStatus } from '$graphql/resolvers-types';
+import type {
+  MutationResolvers,
+  PolicyEffect,
+  ResourceType,
+  ActionType,
+  RuleOperator,
+  ValueType,
+  LogicalOperator,
+  UserStatus,
+  ResolversParentTypes,
+  PolicyManagementMutationsCreateArgs,
+  PolicyManagementMutationsUpdateArgs,
+  PolicyManagementMutationsDeleteArgs,
+  PolicyManagementMutationsAssignToUserArgs,
+  PolicyManagementMutationsRemoveFromUserArgs,
+  PolicyManagementMutationsAddRuleArgs,
+  PolicyManagementMutationsRemoveRuleArgs
+} from '$graphql/resolvers-types';
 import {
   requirePermission,
 } from "#/session/permissions"
@@ -11,8 +28,12 @@ import {
 } from '$db/schema';
 import { eq, and } from 'drizzle-orm';
 
-export const policyMutations: Pick<MutationResolvers, 'createPolicy' | 'updatePolicy' | 'deletePolicy' | 'assignPolicyToUser' | 'removePolicyFromUser' | 'addPolicyRule' | 'removePolicyRule'> = {
-  async createPolicy(_parent, { input }, context) {
+export const policyMutations = {
+  async createPolicy(
+    _parent: ResolversParentTypes['PolicyManagementMutations'],
+    { input }: PolicyManagementMutationsCreateArgs,
+    context: AppContext
+  ) {
     // Check permissions - only admins can create policies
     await requirePermission(context, 'users', 'manage_schema');
 
@@ -112,7 +133,11 @@ export const policyMutations: Pick<MutationResolvers, 'createPolicy' | 'updatePo
     }
   },
 
-  async updatePolicy(_parent, { id, input }, context) {
+  async updatePolicy(
+    _parent: ResolversParentTypes['PolicyManagementMutations'],
+    { id, input }: PolicyManagementMutationsUpdateArgs,
+    context: AppContext
+  ) {
     // Check permissions
     await requirePermission(context, 'users', 'manage_schema');
 
@@ -232,7 +257,11 @@ export const policyMutations: Pick<MutationResolvers, 'createPolicy' | 'updatePo
     }
   },
 
-  async deletePolicy(_parent, { id }, context) {
+  async deletePolicy(
+    _parent: ResolversParentTypes['PolicyManagementMutations'],
+    { id }: PolicyManagementMutationsDeleteArgs,
+    context: AppContext
+  ) {
     // Check permissions
     await requirePermission(context, 'users', 'manage_schema');
 
@@ -258,7 +287,11 @@ export const policyMutations: Pick<MutationResolvers, 'createPolicy' | 'updatePo
     }
   },
 
-  async assignPolicyToUser(_parent, { policyId, userId, reason, expiresAt }, context) {
+  async assignPolicyToUser(
+    _parent: ResolversParentTypes['PolicyManagementMutations'],
+    { policyId, userId, reason, expiresAt }: PolicyManagementMutationsAssignToUserArgs,
+    context: AppContext
+  ) {
     // Check permissions
     await requirePermission(context, 'users', 'update', { id: userId });
 
@@ -298,7 +331,11 @@ export const policyMutations: Pick<MutationResolvers, 'createPolicy' | 'updatePo
     }
   },
 
-  async removePolicyFromUser(_parent, { policyId, userId }, context) {
+  async removePolicyFromUser(
+    _parent: ResolversParentTypes['PolicyManagementMutations'],
+    { policyId, userId }: PolicyManagementMutationsRemoveFromUserArgs,
+    context: AppContext
+  ) {
     // Check permissions
     await requirePermission(context, 'users', 'update', { id: userId });
 
@@ -318,7 +355,11 @@ export const policyMutations: Pick<MutationResolvers, 'createPolicy' | 'updatePo
     }
   },
 
-  async addPolicyRule(_parent, { policyId, rule }, context) {
+  async addPolicyRule(
+    _parent: ResolversParentTypes['PolicyManagementMutations'],
+    { policyId, rule }: PolicyManagementMutationsAddRuleArgs,
+    context: AppContext
+  ) {
     // Check permissions
     await requirePermission(context, 'users', 'manage_schema');
 
@@ -375,7 +416,11 @@ export const policyMutations: Pick<MutationResolvers, 'createPolicy' | 'updatePo
     }
   },
 
-  async removePolicyRule(_parent, { policyId, ruleId }, context) {
+  async removePolicyRule(
+    _parent: ResolversParentTypes['PolicyManagementMutations'],
+    { policyId, ruleId }: PolicyManagementMutationsRemoveRuleArgs,
+    context: AppContext
+  ) {
     // Check permissions
     await requirePermission(context, 'users', 'manage_schema');
 

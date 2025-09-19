@@ -9,7 +9,7 @@ import { sessionManager } from '#/session/manager';
 
 // Account mutation field resolver - returns the AccountMutations object
 export const accountMutationResolver: Pick<MutationResolvers, 'account'> = {
-  account: () => ({}) // Returns empty object, methods are resolved by AccountMutationsResolvers
+  account: () => ({}) as never
 };
 
 // Account mutations type resolvers - the actual mutation methods
@@ -34,7 +34,7 @@ export const accountMutationsResolvers: AccountMutationsResolvers = {
       ))
       .limit(1);
 
-    if (existingUser.length > 0 && existingUser[0].id !== userId) {
+    if (existingUser.length > 0 && existingUser[0]?.id !== userId) {
       throw new Error('Username already exists');
     }
 
