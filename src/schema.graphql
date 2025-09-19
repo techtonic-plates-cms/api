@@ -587,15 +587,471 @@ Clients use these queries to fetch data from the API.
 type Query {
   "Retrieve a specific collection by its name"
   collection(name: String!): Collection
+
+  # User Management Queries
+  "Get current authenticated user"
+  me: User
+  "Get a specific user by ID"
+  user(id: ID!): User
+  "List all users (requires admin permissions)"
+  users: [User!]!
+
+  # Role Management Queries
+  "Get a specific role by ID"
+  role(id: ID!): Role
+  "List all roles"
+  roles: [Role!]!
+
+  # Policy Management Queries
+  "Get a specific policy by ID"
+  policy(id: ID!): Policy
+  "List all policies (requires admin permissions)"
+  policies: [Policy!]!
+}
+
+"""
+Represents a user in the CMS system.
+"""
+type User {
+  "Unique identifier for the user"
+  id: ID!
+  "Username for the user"
+  name: String!
+  "Current status of the user account"
+  status: UserStatus!
+  "When the user account was created"
+  creationTime: String!
+  "When the user last logged in"
+  lastLoginTime: String!
+  "When the user account was last modified"
+  lastEditTime: String!
+  "Roles assigned to this user"
+  roles: [Role!]!
+  "Direct policies assigned to this user"
+  policies: [Policy!]!
+}
+
+"""
+User account status options.
+"""
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  BANNED
+}
+
+"""
+Represents a role that groups permissions together.
+"""
+type Role {
+  "Unique identifier for the role"
+  id: ID!
+  "Name of the role"
+  name: String!
+  "Description explaining the role's purpose"
+  description: String
+  "When the role was created"
+  creationTime: String!
+  "When the role was last modified"
+  lastEditTime: String!
+  "Policies assigned to this role"
+  policies: [Policy!]!
+}
+
+"""
+Represents an ABAC policy that defines access rules.
+"""
+type Policy {
+  "Unique identifier for the policy"
+  id: ID!
+  "Name of the policy"
+  name: String!
+  "Description of what this policy controls"
+  description: String
+  "Whether the policy allows or denies access"
+  effect: PolicyEffect!
+  "Priority for conflict resolution (higher number = higher priority)"
+  priority: Int!
+  "Whether the policy is currently active"
+  isActive: Boolean!
+  "Type of resource this policy applies to"
+  resourceType: ResourceType!
+  "Type of action this policy controls"
+  actionType: ActionType!
+  "How rules within this policy are combined"
+  ruleConnector: LogicalOperator!
+  "Rules that define the conditions for this policy"
+  rules: [PolicyRule!]!
+  "User who created this policy"
+  createdBy: User!
+  "When the policy was created"
+  createdAt: String!
+  "When the policy was last updated"
+  updatedAt: String!
+}
+
+"""
+Policy effect determines whether access is granted or denied.
+"""
+enum PolicyEffect {
+  ALLOW
+  DENY
+}
+
+"""
+Types of resources that can be controlled by policies.
+"""
+enum ResourceType {
+  users
+  collections
+  entries
+  assets
+  fields
+}
+
+"""
+Types of actions that can be performed on resources.
+"""
+enum ActionType {
+  create
+  read
+  update
+  delete
+  publish
+  unpublish
+  schedule
+  archive
+  restore
+  draft
+  ban
+  unban
+  activate
+  deactivate
+  upload
+  download
+  transform
+  configure_fields
+  manage_schema
+}
+
+"""
+Logical operators for combining policy rules.
+"""
+enum LogicalOperator {
+  AND
+  OR
+}
+
+"""
+Individual rule within a policy that checks specific conditions.
+"""
+type PolicyRule {
+  "Unique identifier for the rule"
+  id: ID!
+  "Attribute path this rule checks"
+  attributePath: String!
+  "Comparison operator"
+  operator: RuleOperator!
+  "Expected value for comparison"
+  expectedValue: String!
+  "Type of the expected value"
+  valueType: ValueType!
+  "Description of what this rule checks"
+  description: String
+  "Whether the rule is active"
+  isActive: Boolean!
+  "Order of evaluation within the policy"
+  order: Int!
+  "When the rule was created"
+  createdAt: String!
+}
+
+"""
+Operators for comparing values in policy rules.
+"""
+enum RuleOperator {
+  eq
+  ne
+  in
+  not_in
+  gt
+  gte
+  lt
+  lte
+  contains
+  starts_with
+  ends_with
+  is_null
+  is_not_null
+  regex
+}
+
+"""
+Value types for policy rule comparisons.
+"""
+enum ValueType {
+  string
+  number
+  boolean
+  uuid
+  datetime
+  array
+}
+
+"""
+Input for creating a new user.
+"""
+input CreateUserInput {
+  "Username for the new user"
+  name: String!
+  "Password for the new user (will be hashed)"
+  password: String!
+  "Initial status for the user account"
+  status: UserStatus = ACTIVE
+}
+
+"""
+Input for updating user information.
+"""
+input UpdateUserInput {
+  "New username (optional)"
+  name: String
+  "New password (optional, will be hashed)"
+  password: String
+  "New status (optional)"
+  status: UserStatus
+}
+
+"""
+Input for updating current user's profile.
+"""
+input UpdateMyProfileInput {
+  "New username"
+  name: String!
+}
+
+"""
+Input for changing current user's password.
+"""
+input ChangeMyPasswordInput {
+  "Current password for verification"
+  currentPassword: String!
+  "New password"
+  newPassword: String!
+}
+
+"""
+Input for creating a new role.
+"""
+input CreateRoleInput {
+  "Name for the new role"
+  name: String!
+  "Description of the role's purpose"
+  description: String
+}
+
+"""
+Input for updating role information.
+"""
+input UpdateRoleInput {
+  "New name for the role"
+  name: String
+  "New description for the role"
+  description: String
+}
+
+"""
+Input for creating a policy rule.
+"""
+input CreatePolicyRuleInput {
+  "Attribute path to check"
+  attributePath: String!
+  "Comparison operator"
+  operator: RuleOperator!
+  "Expected value for comparison"
+  expectedValue: String!
+  "Type of the expected value"
+  valueType: ValueType!
+  "Description of the rule"
+  description: String
+  "Order of evaluation (defaults to 0)"
+  order: Int = 0
+}
+
+"""
+Input for creating a new ABAC policy.
+"""
+input CreatePolicyInput {
+  "Name for the new policy"
+  name: String!
+  "Description of what this policy controls"
+  description: String
+  "Whether the policy allows or denies access"
+  effect: PolicyEffect!
+  "Priority for conflict resolution"
+  priority: Int = 100
+  "Type of resource this policy applies to"
+  resourceType: ResourceType!
+  "Type of action this policy controls"
+  actionType: ActionType!
+  "How rules are combined (defaults to AND)"
+  ruleConnector: LogicalOperator = AND
+  "Rules that define the conditions"
+  rules: [CreatePolicyRuleInput!]!
+}
+
+"""
+Input for updating policy information.
+"""
+input UpdatePolicyInput {
+  "New name for the policy"
+  name: String
+  "New description"
+  description: String
+  "New effect"
+  effect: PolicyEffect
+  "New priority"
+  priority: Int
+  "New active status"
+  isActive: Boolean
+  "New rule connector"
+  ruleConnector: LogicalOperator
+}
+
+"""
+Result of user creation operation.
+"""
+type CreateUserResult {
+  "The created user"
+  user: User!
+  "Success message"
+  message: String!
+}
+
+"""
+Result of role assignment operation.
+"""
+type AssignRoleResult {
+  "The updated user"
+  user: User!
+  "The assigned role"
+  role: Role!
+  "Success message"
+  message: String!
+}
+
+"""
+Result of policy assignment operation.
+"""
+type AssignPolicyResult {
+  "Success status"
+  success: Boolean!
+  "Success or error message"
+  message: String!
+}
+
+"""
+Content management operations for collections and entries.
+Handles all content creation, modification, and organization.
+"""
+type ContentMutations {
+  "Create a new collection with schema definition"
+  createCollection(input: CreateCollectionInput!): Collection!
+  "Create a new entry in a collection"
+  createEntry(input: CreateEntryInput!): Entry!
+}
+
+"""
+Account management operations for the authenticated user.
+Provides a clean, organized way to manage user account settings.
+"""
+type AccountMutations {
+  "Update profile information (username, etc.)"
+  updateProfile(input: UpdateMyProfileInput!): User!
+  "Change account password"
+  changePassword(input: ChangeMyPasswordInput!): Boolean!
+  "Deactivate this account"
+  deactivate(confirmUsername: String!): Boolean!
+}
+
+"""
+Administrative operations for managing users, roles, and policies.
+Requires administrative privileges to access these operations.
+"""
+type AdminMutations {
+  "Access user management operations"
+  users: UserManagementMutations!
+  "Access role management operations"
+  roles: RoleManagementMutations!
+  "Access policy management operations"
+  policies: PolicyManagementMutations!
+}
+
+"""
+User management operations for administrators.
+"""
+type UserManagementMutations {
+  "Create a new user account"
+  create(input: CreateUserInput!): CreateUserResult!
+  "Update user information"
+  update(id: ID!, input: UpdateUserInput!): User!
+  "Delete a user account"
+  delete(id: ID!): Boolean!
+  "Change user status (activate, deactivate, ban)"
+  changeStatus(id: ID!, status: UserStatus!): User!
+  "Assign a role to a user"
+  assignRole(userId: ID!, roleId: ID!, expiresAt: String): AssignRoleResult!
+  "Remove a role from a user"
+  removeRole(userId: ID!, roleId: ID!): Boolean!
+}
+
+"""
+Role management operations for administrators.
+"""
+type RoleManagementMutations {
+  "Create a new role"
+  create(input: CreateRoleInput!): Role!
+  "Update role information"
+  update(id: ID!, input: UpdateRoleInput!): Role!
+  "Delete a role"
+  delete(id: ID!): Boolean!
+  "Assign a policy to a role"
+  assignPolicy(policyId: ID!, roleId: ID!, reason: String, expiresAt: String): AssignPolicyResult!
+  "Remove a policy from a role"
+  removePolicy(policyId: ID!, roleId: ID!): Boolean!
+}
+
+"""
+Policy management operations for administrators.
+"""
+type PolicyManagementMutations {
+  "Create a new ABAC policy"
+  create(input: CreatePolicyInput!): Policy!
+  "Update policy information"
+  update(id: ID!, input: UpdatePolicyInput!): Policy!
+  "Delete a policy"
+  delete(id: ID!): Boolean!
+  "Assign a policy directly to a user"
+  assignToUser(policyId: ID!, userId: ID!, reason: String!, expiresAt: String): AssignPolicyResult!
+  "Remove a direct policy assignment from a user"
+  removeFromUser(policyId: ID!, userId: ID!): Boolean!
+  "Add a rule to an existing policy"
+  addRule(policyId: ID!, rule: CreatePolicyRuleInput!): PolicyRule!
+  "Remove a rule from a policy"
+  removeRule(policyId: ID!, ruleId: ID!): Boolean!
 }
 
 """
 Root mutation type that defines all available write operations.
-Clients use these mutations to create, update, and delete data.
+Organized into logical groups for better discoverability and maintainability.
 """
 type Mutation {
-  "Create a new collection with the provided schema definition"
-  createCollection(input: CreateCollectionInput!): Collection!
-  "Create a new entry in a collection with field values"
-  createEntry(input: CreateEntryInput!): Entry!
+  "Content management operations (collections, entries)"
+  content: ContentMutations!
+
+  "Account self-management operations for authenticated users"
+  account: AccountMutations!
+
+  "Administrative operations (requires admin privileges)"
+  admin: AdminMutations!
 }

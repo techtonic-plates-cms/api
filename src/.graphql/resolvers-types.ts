@@ -20,6 +20,84 @@ export type Scalars = {
 };
 
 /**
+ * Account management operations for the authenticated user.
+ * Provides a clean, organized way to manage user account settings.
+ */
+export type AccountMutations = {
+  __typename?: 'AccountMutations';
+  /** Change account password */
+  changePassword: Scalars['Boolean']['output'];
+  /** Deactivate this account */
+  deactivate: Scalars['Boolean']['output'];
+  /** Update profile information (username, etc.) */
+  updateProfile: User;
+};
+
+
+/**
+ * Account management operations for the authenticated user.
+ * Provides a clean, organized way to manage user account settings.
+ */
+export type AccountMutationsChangePasswordArgs = {
+  input: ChangeMyPasswordInput;
+};
+
+
+/**
+ * Account management operations for the authenticated user.
+ * Provides a clean, organized way to manage user account settings.
+ */
+export type AccountMutationsDeactivateArgs = {
+  confirmUsername: Scalars['String']['input'];
+};
+
+
+/**
+ * Account management operations for the authenticated user.
+ * Provides a clean, organized way to manage user account settings.
+ */
+export type AccountMutationsUpdateProfileArgs = {
+  input: UpdateMyProfileInput;
+};
+
+/** Types of actions that can be performed on resources. */
+export enum ActionType {
+  Activate = 'activate',
+  Archive = 'archive',
+  Ban = 'ban',
+  ConfigureFields = 'configure_fields',
+  Create = 'create',
+  Deactivate = 'deactivate',
+  Delete = 'delete',
+  Download = 'download',
+  Draft = 'draft',
+  ManageSchema = 'manage_schema',
+  Publish = 'publish',
+  Read = 'read',
+  Restore = 'restore',
+  Schedule = 'schedule',
+  Transform = 'transform',
+  Unban = 'unban',
+  Unpublish = 'unpublish',
+  Update = 'update',
+  Upload = 'upload'
+}
+
+/**
+ * Administrative operations for managing users, roles, and policies.
+ * Requires administrative privileges to access these operations.
+ */
+export type AdminMutations = {
+  __typename?: 'AdminMutations';
+  /** Access policy management operations */
+  policies: PolicyManagementMutations;
+  /** Access role management operations */
+  roles: RoleManagementMutations;
+  /** Access user management operations */
+  users: UserManagementMutations;
+};
+
+/**
  * File asset with metadata and storage information.
  * Represents uploaded files like images, documents, videos, etc.
  */
@@ -64,6 +142,26 @@ export type AssetFilter = {
   mimeType?: InputMaybe<TextFilter>;
 };
 
+/** Result of policy assignment operation. */
+export type AssignPolicyResult = {
+  __typename?: 'AssignPolicyResult';
+  /** Success or error message */
+  message: Scalars['String']['output'];
+  /** Success status */
+  success: Scalars['Boolean']['output'];
+};
+
+/** Result of role assignment operation. */
+export type AssignRoleResult = {
+  __typename?: 'AssignRoleResult';
+  /** Success message */
+  message: Scalars['String']['output'];
+  /** The assigned role */
+  role: Role;
+  /** The updated user */
+  user: User;
+};
+
 /** Input for BOOLEAN field values. */
 export type BooleanFieldInput = {
   /** Boolean value */
@@ -83,6 +181,14 @@ export type BooleanValue = {
   __typename?: 'BooleanValue';
   /** The boolean value */
   value?: Maybe<Scalars['Boolean']['output']>;
+};
+
+/** Input for changing current user's password. */
+export type ChangeMyPasswordInput = {
+  /** Current password for verification */
+  currentPassword: Scalars['String']['input'];
+  /** New password */
+  newPassword: Scalars['String']['input'];
 };
 
 /**
@@ -118,6 +224,36 @@ export type Collection = {
  */
 export type CollectionEntriesArgs = {
   filter?: InputMaybe<EntryFilter>;
+};
+
+/**
+ * Content management operations for collections and entries.
+ * Handles all content creation, modification, and organization.
+ */
+export type ContentMutations = {
+  __typename?: 'ContentMutations';
+  /** Create a new collection with schema definition */
+  createCollection: Collection;
+  /** Create a new entry in a collection */
+  createEntry: Entry;
+};
+
+
+/**
+ * Content management operations for collections and entries.
+ * Handles all content creation, modification, and organization.
+ */
+export type ContentMutationsCreateCollectionArgs = {
+  input: CreateCollectionInput;
+};
+
+
+/**
+ * Content management operations for collections and entries.
+ * Handles all content creation, modification, and organization.
+ */
+export type ContentMutationsCreateEntryArgs = {
+  input: CreateEntryInput;
 };
 
 /**
@@ -223,6 +359,69 @@ export type CreateFieldInput = {
   label?: InputMaybe<Scalars['String']['input']>;
   /** Technical name for the field (used in API calls) */
   name: Scalars['String']['input'];
+};
+
+/** Input for creating a new ABAC policy. */
+export type CreatePolicyInput = {
+  /** Type of action this policy controls */
+  actionType: ActionType;
+  /** Description of what this policy controls */
+  description?: InputMaybe<Scalars['String']['input']>;
+  /** Whether the policy allows or denies access */
+  effect: PolicyEffect;
+  /** Name for the new policy */
+  name: Scalars['String']['input'];
+  /** Priority for conflict resolution */
+  priority?: InputMaybe<Scalars['Int']['input']>;
+  /** Type of resource this policy applies to */
+  resourceType: ResourceType;
+  /** How rules are combined (defaults to AND) */
+  ruleConnector?: InputMaybe<LogicalOperator>;
+  /** Rules that define the conditions */
+  rules: Array<CreatePolicyRuleInput>;
+};
+
+/** Input for creating a policy rule. */
+export type CreatePolicyRuleInput = {
+  /** Attribute path to check */
+  attributePath: Scalars['String']['input'];
+  /** Description of the rule */
+  description?: InputMaybe<Scalars['String']['input']>;
+  /** Expected value for comparison */
+  expectedValue: Scalars['String']['input'];
+  /** Comparison operator */
+  operator: RuleOperator;
+  /** Order of evaluation (defaults to 0) */
+  order?: InputMaybe<Scalars['Int']['input']>;
+  /** Type of the expected value */
+  valueType: ValueType;
+};
+
+/** Input for creating a new role. */
+export type CreateRoleInput = {
+  /** Description of the role's purpose */
+  description?: InputMaybe<Scalars['String']['input']>;
+  /** Name for the new role */
+  name: Scalars['String']['input'];
+};
+
+/** Input for creating a new user. */
+export type CreateUserInput = {
+  /** Username for the new user */
+  name: Scalars['String']['input'];
+  /** Password for the new user (will be hashed) */
+  password: Scalars['String']['input'];
+  /** Initial status for the user account */
+  status?: InputMaybe<UserStatus>;
+};
+
+/** Result of user creation operation. */
+export type CreateUserResult = {
+  __typename?: 'CreateUserResult';
+  /** Success message */
+  message: Scalars['String']['output'];
+  /** The created user */
+  user: User;
 };
 
 /**
@@ -408,34 +607,24 @@ export type JsonFilter = {
   valueType?: InputMaybe<TextFilter>;
 };
 
+/** Logical operators for combining policy rules. */
+export enum LogicalOperator {
+  And = 'AND',
+  Or = 'OR'
+}
+
 /**
  * Root mutation type that defines all available write operations.
- * Clients use these mutations to create, update, and delete data.
+ * Organized into logical groups for better discoverability and maintainability.
  */
 export type Mutation = {
   __typename?: 'Mutation';
-  /** Create a new collection with the provided schema definition */
-  createCollection: Collection;
-  /** Create a new entry in a collection with field values */
-  createEntry: Entry;
-};
-
-
-/**
- * Root mutation type that defines all available write operations.
- * Clients use these mutations to create, update, and delete data.
- */
-export type MutationCreateCollectionArgs = {
-  input: CreateCollectionInput;
-};
-
-
-/**
- * Root mutation type that defines all available write operations.
- * Clients use these mutations to create, update, and delete data.
- */
-export type MutationCreateEntryArgs = {
-  input: CreateEntryInput;
+  /** Account self-management operations for authenticated users */
+  account: AccountMutations;
+  /** Administrative operations (requires admin privileges) */
+  admin: AdminMutations;
+  /** Content management operations (collections, entries) */
+  content: ContentMutations;
 };
 
 /** Input for NUMBER field values. */
@@ -486,6 +675,134 @@ export type ObjectFieldInput = {
   value: Scalars['JSON']['input'];
 };
 
+/** Represents an ABAC policy that defines access rules. */
+export type Policy = {
+  __typename?: 'Policy';
+  /** Type of action this policy controls */
+  actionType: ActionType;
+  /** When the policy was created */
+  createdAt: Scalars['String']['output'];
+  /** User who created this policy */
+  createdBy: User;
+  /** Description of what this policy controls */
+  description?: Maybe<Scalars['String']['output']>;
+  /** Whether the policy allows or denies access */
+  effect: PolicyEffect;
+  /** Unique identifier for the policy */
+  id: Scalars['ID']['output'];
+  /** Whether the policy is currently active */
+  isActive: Scalars['Boolean']['output'];
+  /** Name of the policy */
+  name: Scalars['String']['output'];
+  /** Priority for conflict resolution (higher number = higher priority) */
+  priority: Scalars['Int']['output'];
+  /** Type of resource this policy applies to */
+  resourceType: ResourceType;
+  /** How rules within this policy are combined */
+  ruleConnector: LogicalOperator;
+  /** Rules that define the conditions for this policy */
+  rules: Array<PolicyRule>;
+  /** When the policy was last updated */
+  updatedAt: Scalars['String']['output'];
+};
+
+/** Policy effect determines whether access is granted or denied. */
+export enum PolicyEffect {
+  Allow = 'ALLOW',
+  Deny = 'DENY'
+}
+
+/** Policy management operations for administrators. */
+export type PolicyManagementMutations = {
+  __typename?: 'PolicyManagementMutations';
+  /** Add a rule to an existing policy */
+  addRule: PolicyRule;
+  /** Assign a policy directly to a user */
+  assignToUser: AssignPolicyResult;
+  /** Create a new ABAC policy */
+  create: Policy;
+  /** Delete a policy */
+  delete: Scalars['Boolean']['output'];
+  /** Remove a direct policy assignment from a user */
+  removeFromUser: Scalars['Boolean']['output'];
+  /** Remove a rule from a policy */
+  removeRule: Scalars['Boolean']['output'];
+  /** Update policy information */
+  update: Policy;
+};
+
+
+/** Policy management operations for administrators. */
+export type PolicyManagementMutationsAddRuleArgs = {
+  policyId: Scalars['ID']['input'];
+  rule: CreatePolicyRuleInput;
+};
+
+
+/** Policy management operations for administrators. */
+export type PolicyManagementMutationsAssignToUserArgs = {
+  expiresAt?: InputMaybe<Scalars['String']['input']>;
+  policyId: Scalars['ID']['input'];
+  reason: Scalars['String']['input'];
+  userId: Scalars['ID']['input'];
+};
+
+
+/** Policy management operations for administrators. */
+export type PolicyManagementMutationsCreateArgs = {
+  input: CreatePolicyInput;
+};
+
+
+/** Policy management operations for administrators. */
+export type PolicyManagementMutationsDeleteArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+/** Policy management operations for administrators. */
+export type PolicyManagementMutationsRemoveFromUserArgs = {
+  policyId: Scalars['ID']['input'];
+  userId: Scalars['ID']['input'];
+};
+
+
+/** Policy management operations for administrators. */
+export type PolicyManagementMutationsRemoveRuleArgs = {
+  policyId: Scalars['ID']['input'];
+  ruleId: Scalars['ID']['input'];
+};
+
+
+/** Policy management operations for administrators. */
+export type PolicyManagementMutationsUpdateArgs = {
+  id: Scalars['ID']['input'];
+  input: UpdatePolicyInput;
+};
+
+/** Individual rule within a policy that checks specific conditions. */
+export type PolicyRule = {
+  __typename?: 'PolicyRule';
+  /** Attribute path this rule checks */
+  attributePath: Scalars['String']['output'];
+  /** When the rule was created */
+  createdAt: Scalars['String']['output'];
+  /** Description of what this rule checks */
+  description?: Maybe<Scalars['String']['output']>;
+  /** Expected value for comparison */
+  expectedValue: Scalars['String']['output'];
+  /** Unique identifier for the rule */
+  id: Scalars['ID']['output'];
+  /** Whether the rule is active */
+  isActive: Scalars['Boolean']['output'];
+  /** Comparison operator */
+  operator: RuleOperator;
+  /** Order of evaluation within the policy */
+  order: Scalars['Int']['output'];
+  /** Type of the expected value */
+  valueType: ValueType;
+};
+
 /**
  * Root query type that defines all available read operations.
  * Clients use these queries to fetch data from the API.
@@ -494,6 +811,20 @@ export type Query = {
   __typename?: 'Query';
   /** Retrieve a specific collection by its name */
   collection?: Maybe<Collection>;
+  /** Get current authenticated user */
+  me?: Maybe<User>;
+  /** List all policies (requires admin permissions) */
+  policies: Array<Policy>;
+  /** Get a specific policy by ID */
+  policy?: Maybe<Policy>;
+  /** Get a specific role by ID */
+  role?: Maybe<Role>;
+  /** List all roles */
+  roles: Array<Role>;
+  /** Get a specific user by ID */
+  user?: Maybe<User>;
+  /** List all users (requires admin permissions) */
+  users: Array<User>;
 };
 
 
@@ -503,6 +834,33 @@ export type Query = {
  */
 export type QueryCollectionArgs = {
   name: Scalars['String']['input'];
+};
+
+
+/**
+ * Root query type that defines all available read operations.
+ * Clients use these queries to fetch data from the API.
+ */
+export type QueryPolicyArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+/**
+ * Root query type that defines all available read operations.
+ * Clients use these queries to fetch data from the API.
+ */
+export type QueryRoleArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+/**
+ * Root query type that defines all available read operations.
+ * Clients use these queries to fetch data from the API.
+ */
+export type QueryUserArgs = {
+  id: Scalars['ID']['input'];
 };
 
 /**
@@ -533,6 +891,15 @@ export type RelationFilter = {
   /** Filter by the status of the referenced entry */
   entryStatus?: InputMaybe<Scalars['String']['input']>;
 };
+
+/** Types of resources that can be controlled by policies. */
+export enum ResourceType {
+  Assets = 'assets',
+  Collections = 'collections',
+  Entries = 'entries',
+  Fields = 'fields',
+  Users = 'users'
+}
 
 /**
  * Rich text content with formatting and markup support.
@@ -570,6 +937,91 @@ export type RichTextFilter = {
   /** Filter by rendered HTML content */
   rendered?: InputMaybe<TextFilter>;
 };
+
+/** Represents a role that groups permissions together. */
+export type Role = {
+  __typename?: 'Role';
+  /** When the role was created */
+  creationTime: Scalars['String']['output'];
+  /** Description explaining the role's purpose */
+  description?: Maybe<Scalars['String']['output']>;
+  /** Unique identifier for the role */
+  id: Scalars['ID']['output'];
+  /** When the role was last modified */
+  lastEditTime: Scalars['String']['output'];
+  /** Name of the role */
+  name: Scalars['String']['output'];
+  /** Policies assigned to this role */
+  policies: Array<Policy>;
+};
+
+/** Role management operations for administrators. */
+export type RoleManagementMutations = {
+  __typename?: 'RoleManagementMutations';
+  /** Assign a policy to a role */
+  assignPolicy: AssignPolicyResult;
+  /** Create a new role */
+  create: Role;
+  /** Delete a role */
+  delete: Scalars['Boolean']['output'];
+  /** Remove a policy from a role */
+  removePolicy: Scalars['Boolean']['output'];
+  /** Update role information */
+  update: Role;
+};
+
+
+/** Role management operations for administrators. */
+export type RoleManagementMutationsAssignPolicyArgs = {
+  expiresAt?: InputMaybe<Scalars['String']['input']>;
+  policyId: Scalars['ID']['input'];
+  reason?: InputMaybe<Scalars['String']['input']>;
+  roleId: Scalars['ID']['input'];
+};
+
+
+/** Role management operations for administrators. */
+export type RoleManagementMutationsCreateArgs = {
+  input: CreateRoleInput;
+};
+
+
+/** Role management operations for administrators. */
+export type RoleManagementMutationsDeleteArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+/** Role management operations for administrators. */
+export type RoleManagementMutationsRemovePolicyArgs = {
+  policyId: Scalars['ID']['input'];
+  roleId: Scalars['ID']['input'];
+};
+
+
+/** Role management operations for administrators. */
+export type RoleManagementMutationsUpdateArgs = {
+  id: Scalars['ID']['input'];
+  input: UpdateRoleInput;
+};
+
+/** Operators for comparing values in policy rules. */
+export enum RuleOperator {
+  Contains = 'contains',
+  EndsWith = 'ends_with',
+  Eq = 'eq',
+  Gt = 'gt',
+  Gte = 'gte',
+  In = 'in',
+  IsNotNull = 'is_not_null',
+  IsNull = 'is_null',
+  Lt = 'lt',
+  Lte = 'lte',
+  Ne = 'ne',
+  NotIn = 'not_in',
+  Regex = 'regex',
+  StartsWith = 'starts_with'
+}
 
 /** Plain text field value container. */
 export type Text = {
@@ -641,6 +1093,142 @@ export type TypstTextFilter = {
   /** Filter by rendered output content */
   rendered?: InputMaybe<TextFilter>;
 };
+
+/** Input for updating current user's profile. */
+export type UpdateMyProfileInput = {
+  /** New username */
+  name: Scalars['String']['input'];
+};
+
+/** Input for updating policy information. */
+export type UpdatePolicyInput = {
+  /** New description */
+  description?: InputMaybe<Scalars['String']['input']>;
+  /** New effect */
+  effect?: InputMaybe<PolicyEffect>;
+  /** New active status */
+  isActive?: InputMaybe<Scalars['Boolean']['input']>;
+  /** New name for the policy */
+  name?: InputMaybe<Scalars['String']['input']>;
+  /** New priority */
+  priority?: InputMaybe<Scalars['Int']['input']>;
+  /** New rule connector */
+  ruleConnector?: InputMaybe<LogicalOperator>;
+};
+
+/** Input for updating role information. */
+export type UpdateRoleInput = {
+  /** New description for the role */
+  description?: InputMaybe<Scalars['String']['input']>;
+  /** New name for the role */
+  name?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** Input for updating user information. */
+export type UpdateUserInput = {
+  /** New username (optional) */
+  name?: InputMaybe<Scalars['String']['input']>;
+  /** New password (optional, will be hashed) */
+  password?: InputMaybe<Scalars['String']['input']>;
+  /** New status (optional) */
+  status?: InputMaybe<UserStatus>;
+};
+
+/** Represents a user in the CMS system. */
+export type User = {
+  __typename?: 'User';
+  /** When the user account was created */
+  creationTime: Scalars['String']['output'];
+  /** Unique identifier for the user */
+  id: Scalars['ID']['output'];
+  /** When the user account was last modified */
+  lastEditTime: Scalars['String']['output'];
+  /** When the user last logged in */
+  lastLoginTime: Scalars['String']['output'];
+  /** Username for the user */
+  name: Scalars['String']['output'];
+  /** Direct policies assigned to this user */
+  policies: Array<Policy>;
+  /** Roles assigned to this user */
+  roles: Array<Role>;
+  /** Current status of the user account */
+  status: UserStatus;
+};
+
+/** User management operations for administrators. */
+export type UserManagementMutations = {
+  __typename?: 'UserManagementMutations';
+  /** Assign a role to a user */
+  assignRole: AssignRoleResult;
+  /** Change user status (activate, deactivate, ban) */
+  changeStatus: User;
+  /** Create a new user account */
+  create: CreateUserResult;
+  /** Delete a user account */
+  delete: Scalars['Boolean']['output'];
+  /** Remove a role from a user */
+  removeRole: Scalars['Boolean']['output'];
+  /** Update user information */
+  update: User;
+};
+
+
+/** User management operations for administrators. */
+export type UserManagementMutationsAssignRoleArgs = {
+  expiresAt?: InputMaybe<Scalars['String']['input']>;
+  roleId: Scalars['ID']['input'];
+  userId: Scalars['ID']['input'];
+};
+
+
+/** User management operations for administrators. */
+export type UserManagementMutationsChangeStatusArgs = {
+  id: Scalars['ID']['input'];
+  status: UserStatus;
+};
+
+
+/** User management operations for administrators. */
+export type UserManagementMutationsCreateArgs = {
+  input: CreateUserInput;
+};
+
+
+/** User management operations for administrators. */
+export type UserManagementMutationsDeleteArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+/** User management operations for administrators. */
+export type UserManagementMutationsRemoveRoleArgs = {
+  roleId: Scalars['ID']['input'];
+  userId: Scalars['ID']['input'];
+};
+
+
+/** User management operations for administrators. */
+export type UserManagementMutationsUpdateArgs = {
+  id: Scalars['ID']['input'];
+  input: UpdateUserInput;
+};
+
+/** User account status options. */
+export enum UserStatus {
+  Active = 'ACTIVE',
+  Banned = 'BANNED',
+  Inactive = 'INACTIVE'
+}
+
+/** Value types for policy rule comparisons. */
+export enum ValueType {
+  Array = 'array',
+  Boolean = 'boolean',
+  Datetime = 'datetime',
+  Number = 'number',
+  String = 'string',
+  Uuid = 'uuid'
+}
 
 export type WithIndex<TObject> = TObject & Record<string, any>;
 export type ResolversObject<TObject> = WithIndex<TObject>;
@@ -730,19 +1318,31 @@ export type ResolversUnionTypes<_RefType extends Record<string, unknown>> = Reso
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = ResolversObject<{
+  AccountMutations: ResolverTypeWrapper<AccountMutations>;
+  ActionType: ActionType;
+  AdminMutations: ResolverTypeWrapper<AdminMutations>;
   Asset: ResolverTypeWrapper<Asset>;
   AssetFieldInput: AssetFieldInput;
   AssetFilter: AssetFilter;
+  AssignPolicyResult: ResolverTypeWrapper<AssignPolicyResult>;
+  AssignRoleResult: ResolverTypeWrapper<AssignRoleResult>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   BooleanFieldInput: BooleanFieldInput;
   BooleanFilter: BooleanFilter;
   BooleanValue: ResolverTypeWrapper<BooleanValue>;
+  ChangeMyPasswordInput: ChangeMyPasswordInput;
   Collection: ResolverTypeWrapper<Omit<Collection, 'entries'> & { entries: Array<ResolversTypes['Entry']> }>;
+  ContentMutations: ResolverTypeWrapper<Omit<ContentMutations, 'createCollection' | 'createEntry'> & { createCollection: ResolversTypes['Collection'], createEntry: ResolversTypes['Entry'] }>;
   CreateCollectionInput: CreateCollectionInput;
   CreateEntryFieldInput: CreateEntryFieldInput;
   CreateEntryFieldValueInput: CreateEntryFieldValueInput;
   CreateEntryInput: CreateEntryInput;
   CreateFieldInput: CreateFieldInput;
+  CreatePolicyInput: CreatePolicyInput;
+  CreatePolicyRuleInput: CreatePolicyRuleInput;
+  CreateRoleInput: CreateRoleInput;
+  CreateUserInput: CreateUserInput;
+  CreateUserResult: ResolverTypeWrapper<CreateUserResult>;
   DataType: DataType;
   DateTime: ResolverTypeWrapper<DateTime>;
   DateTimeFieldInput: DateTimeFieldInput;
@@ -758,19 +1358,28 @@ export type ResolversTypes = ResolversObject<{
   Json: ResolverTypeWrapper<Json>;
   JsonFieldInput: JsonFieldInput;
   JsonFilter: JsonFilter;
+  LogicalOperator: LogicalOperator;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   NumberFieldInput: NumberFieldInput;
   NumberFilter: NumberFilter;
   NumberListFieldInput: NumberListFieldInput;
   NumberValue: ResolverTypeWrapper<NumberValue>;
   ObjectFieldInput: ObjectFieldInput;
+  Policy: ResolverTypeWrapper<Policy>;
+  PolicyEffect: PolicyEffect;
+  PolicyManagementMutations: ResolverTypeWrapper<PolicyManagementMutations>;
+  PolicyRule: ResolverTypeWrapper<PolicyRule>;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
   Relation: ResolverTypeWrapper<Omit<Relation, 'entry'> & { entry?: Maybe<ResolversTypes['Entry']> }>;
   RelationFieldInput: RelationFieldInput;
   RelationFilter: RelationFilter;
+  ResourceType: ResourceType;
   RichText: ResolverTypeWrapper<RichText>;
   RichTextFieldInput: RichTextFieldInput;
   RichTextFilter: RichTextFilter;
+  Role: ResolverTypeWrapper<Role>;
+  RoleManagementMutations: ResolverTypeWrapper<RoleManagementMutations>;
+  RuleOperator: RuleOperator;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Text: ResolverTypeWrapper<Text>;
   TextFieldInput: TextFieldInput;
@@ -779,23 +1388,42 @@ export type ResolversTypes = ResolversObject<{
   TypstText: ResolverTypeWrapper<TypstText>;
   TypstTextFieldInput: TypstTextFieldInput;
   TypstTextFilter: TypstTextFilter;
+  UpdateMyProfileInput: UpdateMyProfileInput;
+  UpdatePolicyInput: UpdatePolicyInput;
+  UpdateRoleInput: UpdateRoleInput;
+  UpdateUserInput: UpdateUserInput;
+  User: ResolverTypeWrapper<User>;
+  UserManagementMutations: ResolverTypeWrapper<UserManagementMutations>;
+  UserStatus: UserStatus;
+  ValueType: ValueType;
 }>;
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = ResolversObject<{
+  AccountMutations: AccountMutations;
+  AdminMutations: AdminMutations;
   Asset: Asset;
   AssetFieldInput: AssetFieldInput;
   AssetFilter: AssetFilter;
+  AssignPolicyResult: AssignPolicyResult;
+  AssignRoleResult: AssignRoleResult;
   Boolean: Scalars['Boolean']['output'];
   BooleanFieldInput: BooleanFieldInput;
   BooleanFilter: BooleanFilter;
   BooleanValue: BooleanValue;
+  ChangeMyPasswordInput: ChangeMyPasswordInput;
   Collection: Omit<Collection, 'entries'> & { entries: Array<ResolversParentTypes['Entry']> };
+  ContentMutations: Omit<ContentMutations, 'createCollection' | 'createEntry'> & { createCollection: ResolversParentTypes['Collection'], createEntry: ResolversParentTypes['Entry'] };
   CreateCollectionInput: CreateCollectionInput;
   CreateEntryFieldInput: CreateEntryFieldInput;
   CreateEntryFieldValueInput: CreateEntryFieldValueInput;
   CreateEntryInput: CreateEntryInput;
   CreateFieldInput: CreateFieldInput;
+  CreatePolicyInput: CreatePolicyInput;
+  CreatePolicyRuleInput: CreatePolicyRuleInput;
+  CreateRoleInput: CreateRoleInput;
+  CreateUserInput: CreateUserInput;
+  CreateUserResult: CreateUserResult;
   DateTime: DateTime;
   DateTimeFieldInput: DateTimeFieldInput;
   DateTimeFilter: DateTimeFilter;
@@ -816,6 +1444,9 @@ export type ResolversParentTypes = ResolversObject<{
   NumberListFieldInput: NumberListFieldInput;
   NumberValue: NumberValue;
   ObjectFieldInput: ObjectFieldInput;
+  Policy: Policy;
+  PolicyManagementMutations: PolicyManagementMutations;
+  PolicyRule: PolicyRule;
   Query: Record<PropertyKey, never>;
   Relation: Omit<Relation, 'entry'> & { entry?: Maybe<ResolversParentTypes['Entry']> };
   RelationFieldInput: RelationFieldInput;
@@ -823,6 +1454,8 @@ export type ResolversParentTypes = ResolversObject<{
   RichText: RichText;
   RichTextFieldInput: RichTextFieldInput;
   RichTextFilter: RichTextFilter;
+  Role: Role;
+  RoleManagementMutations: RoleManagementMutations;
   String: Scalars['String']['output'];
   Text: Text;
   TextFieldInput: TextFieldInput;
@@ -831,6 +1464,24 @@ export type ResolversParentTypes = ResolversObject<{
   TypstText: TypstText;
   TypstTextFieldInput: TypstTextFieldInput;
   TypstTextFilter: TypstTextFilter;
+  UpdateMyProfileInput: UpdateMyProfileInput;
+  UpdatePolicyInput: UpdatePolicyInput;
+  UpdateRoleInput: UpdateRoleInput;
+  UpdateUserInput: UpdateUserInput;
+  User: User;
+  UserManagementMutations: UserManagementMutations;
+}>;
+
+export type AccountMutationsResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['AccountMutations'] = ResolversParentTypes['AccountMutations']> = ResolversObject<{
+  changePassword?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<AccountMutationsChangePasswordArgs, 'input'>>;
+  deactivate?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<AccountMutationsDeactivateArgs, 'confirmUsername'>>;
+  updateProfile?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<AccountMutationsUpdateProfileArgs, 'input'>>;
+}>;
+
+export type AdminMutationsResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['AdminMutations'] = ResolversParentTypes['AdminMutations']> = ResolversObject<{
+  policies?: Resolver<ResolversTypes['PolicyManagementMutations'], ParentType, ContextType>;
+  roles?: Resolver<ResolversTypes['RoleManagementMutations'], ParentType, ContextType>;
+  users?: Resolver<ResolversTypes['UserManagementMutations'], ParentType, ContextType>;
 }>;
 
 export type AssetResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['Asset'] = ResolversParentTypes['Asset']> = ResolversObject<{
@@ -842,6 +1493,17 @@ export type AssetResolvers<ContextType = AppContext, ParentType extends Resolver
   mimeType?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   path?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type AssignPolicyResultResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['AssignPolicyResult'] = ResolversParentTypes['AssignPolicyResult']> = ResolversObject<{
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+}>;
+
+export type AssignRoleResultResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['AssignRoleResult'] = ResolversParentTypes['AssignRoleResult']> = ResolversObject<{
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  role?: Resolver<ResolversTypes['Role'], ParentType, ContextType>;
+  user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
 }>;
 
 export type BooleanValueResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['BooleanValue'] = ResolversParentTypes['BooleanValue']> = ResolversObject<{
@@ -859,6 +1521,16 @@ export type CollectionResolvers<ContextType = AppContext, ParentType extends Res
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   slug?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   updatedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+}>;
+
+export type ContentMutationsResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['ContentMutations'] = ResolversParentTypes['ContentMutations']> = ResolversObject<{
+  createCollection?: Resolver<ResolversTypes['Collection'], ParentType, ContextType, RequireFields<ContentMutationsCreateCollectionArgs, 'input'>>;
+  createEntry?: Resolver<ResolversTypes['Entry'], ParentType, ContextType, RequireFields<ContentMutationsCreateEntryArgs, 'input'>>;
+}>;
+
+export type CreateUserResultResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['CreateUserResult'] = ResolversParentTypes['CreateUserResult']> = ResolversObject<{
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
 }>;
 
 export type DateTimeResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['DateTime'] = ResolversParentTypes['DateTime']> = ResolversObject<{
@@ -900,8 +1572,9 @@ export type JsonResolvers<ContextType = AppContext, ParentType extends Resolvers
 }>;
 
 export type MutationResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
-  createCollection?: Resolver<ResolversTypes['Collection'], ParentType, ContextType, RequireFields<MutationCreateCollectionArgs, 'input'>>;
-  createEntry?: Resolver<ResolversTypes['Entry'], ParentType, ContextType, RequireFields<MutationCreateEntryArgs, 'input'>>;
+  account?: Resolver<ResolversTypes['AccountMutations'], ParentType, ContextType>;
+  admin?: Resolver<ResolversTypes['AdminMutations'], ParentType, ContextType>;
+  content?: Resolver<ResolversTypes['ContentMutations'], ParentType, ContextType>;
 }>;
 
 export type NumberValueResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['NumberValue'] = ResolversParentTypes['NumberValue']> = ResolversObject<{
@@ -909,8 +1582,53 @@ export type NumberValueResolvers<ContextType = AppContext, ParentType extends Re
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type PolicyResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['Policy'] = ResolversParentTypes['Policy']> = ResolversObject<{
+  actionType?: Resolver<ResolversTypes['ActionType'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  createdBy?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  effect?: Resolver<ResolversTypes['PolicyEffect'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  isActive?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  priority?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  resourceType?: Resolver<ResolversTypes['ResourceType'], ParentType, ContextType>;
+  ruleConnector?: Resolver<ResolversTypes['LogicalOperator'], ParentType, ContextType>;
+  rules?: Resolver<Array<ResolversTypes['PolicyRule']>, ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+}>;
+
+export type PolicyManagementMutationsResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['PolicyManagementMutations'] = ResolversParentTypes['PolicyManagementMutations']> = ResolversObject<{
+  addRule?: Resolver<ResolversTypes['PolicyRule'], ParentType, ContextType, RequireFields<PolicyManagementMutationsAddRuleArgs, 'policyId' | 'rule'>>;
+  assignToUser?: Resolver<ResolversTypes['AssignPolicyResult'], ParentType, ContextType, RequireFields<PolicyManagementMutationsAssignToUserArgs, 'policyId' | 'reason' | 'userId'>>;
+  create?: Resolver<ResolversTypes['Policy'], ParentType, ContextType, RequireFields<PolicyManagementMutationsCreateArgs, 'input'>>;
+  delete?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<PolicyManagementMutationsDeleteArgs, 'id'>>;
+  removeFromUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<PolicyManagementMutationsRemoveFromUserArgs, 'policyId' | 'userId'>>;
+  removeRule?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<PolicyManagementMutationsRemoveRuleArgs, 'policyId' | 'ruleId'>>;
+  update?: Resolver<ResolversTypes['Policy'], ParentType, ContextType, RequireFields<PolicyManagementMutationsUpdateArgs, 'id' | 'input'>>;
+}>;
+
+export type PolicyRuleResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['PolicyRule'] = ResolversParentTypes['PolicyRule']> = ResolversObject<{
+  attributePath?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  expectedValue?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  isActive?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  operator?: Resolver<ResolversTypes['RuleOperator'], ParentType, ContextType>;
+  order?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  valueType?: Resolver<ResolversTypes['ValueType'], ParentType, ContextType>;
+}>;
+
 export type QueryResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
   collection?: Resolver<Maybe<ResolversTypes['Collection']>, ParentType, ContextType, RequireFields<QueryCollectionArgs, 'name'>>;
+  me?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  policies?: Resolver<Array<ResolversTypes['Policy']>, ParentType, ContextType>;
+  policy?: Resolver<Maybe<ResolversTypes['Policy']>, ParentType, ContextType, RequireFields<QueryPolicyArgs, 'id'>>;
+  role?: Resolver<Maybe<ResolversTypes['Role']>, ParentType, ContextType, RequireFields<QueryRoleArgs, 'id'>>;
+  roles?: Resolver<Array<ResolversTypes['Role']>, ParentType, ContextType>;
+  user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
+  users?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
 }>;
 
 export type RelationResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['Relation'] = ResolversParentTypes['Relation']> = ResolversObject<{
@@ -925,6 +1643,23 @@ export type RichTextResolvers<ContextType = AppContext, ParentType extends Resol
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type RoleResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['Role'] = ResolversParentTypes['Role']> = ResolversObject<{
+  creationTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  lastEditTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  policies?: Resolver<Array<ResolversTypes['Policy']>, ParentType, ContextType>;
+}>;
+
+export type RoleManagementMutationsResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['RoleManagementMutations'] = ResolversParentTypes['RoleManagementMutations']> = ResolversObject<{
+  assignPolicy?: Resolver<ResolversTypes['AssignPolicyResult'], ParentType, ContextType, RequireFields<RoleManagementMutationsAssignPolicyArgs, 'policyId' | 'roleId'>>;
+  create?: Resolver<ResolversTypes['Role'], ParentType, ContextType, RequireFields<RoleManagementMutationsCreateArgs, 'input'>>;
+  delete?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<RoleManagementMutationsDeleteArgs, 'id'>>;
+  removePolicy?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<RoleManagementMutationsRemovePolicyArgs, 'policyId' | 'roleId'>>;
+  update?: Resolver<ResolversTypes['Role'], ParentType, ContextType, RequireFields<RoleManagementMutationsUpdateArgs, 'id' | 'input'>>;
+}>;
+
 export type TextResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['Text'] = ResolversParentTypes['Text']> = ResolversObject<{
   text?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -936,10 +1671,36 @@ export type TypstTextResolvers<ContextType = AppContext, ParentType extends Reso
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type UserResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = ResolversObject<{
+  creationTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  lastEditTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  lastLoginTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  policies?: Resolver<Array<ResolversTypes['Policy']>, ParentType, ContextType>;
+  roles?: Resolver<Array<ResolversTypes['Role']>, ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['UserStatus'], ParentType, ContextType>;
+}>;
+
+export type UserManagementMutationsResolvers<ContextType = AppContext, ParentType extends ResolversParentTypes['UserManagementMutations'] = ResolversParentTypes['UserManagementMutations']> = ResolversObject<{
+  assignRole?: Resolver<ResolversTypes['AssignRoleResult'], ParentType, ContextType, RequireFields<UserManagementMutationsAssignRoleArgs, 'roleId' | 'userId'>>;
+  changeStatus?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<UserManagementMutationsChangeStatusArgs, 'id' | 'status'>>;
+  create?: Resolver<ResolversTypes['CreateUserResult'], ParentType, ContextType, RequireFields<UserManagementMutationsCreateArgs, 'input'>>;
+  delete?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<UserManagementMutationsDeleteArgs, 'id'>>;
+  removeRole?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<UserManagementMutationsRemoveRoleArgs, 'roleId' | 'userId'>>;
+  update?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<UserManagementMutationsUpdateArgs, 'id' | 'input'>>;
+}>;
+
 export type Resolvers<ContextType = AppContext> = ResolversObject<{
+  AccountMutations?: AccountMutationsResolvers<ContextType>;
+  AdminMutations?: AdminMutationsResolvers<ContextType>;
   Asset?: AssetResolvers<ContextType>;
+  AssignPolicyResult?: AssignPolicyResultResolvers<ContextType>;
+  AssignRoleResult?: AssignRoleResultResolvers<ContextType>;
   BooleanValue?: BooleanValueResolvers<ContextType>;
   Collection?: CollectionResolvers<ContextType>;
+  ContentMutations?: ContentMutationsResolvers<ContextType>;
+  CreateUserResult?: CreateUserResultResolvers<ContextType>;
   DateTime?: DateTimeResolvers<ContextType>;
   Entry?: EntryResolvers<ContextType>;
   Field?: FieldResolvers<ContextType>;
@@ -948,10 +1709,17 @@ export type Resolvers<ContextType = AppContext> = ResolversObject<{
   Json?: JsonResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   NumberValue?: NumberValueResolvers<ContextType>;
+  Policy?: PolicyResolvers<ContextType>;
+  PolicyManagementMutations?: PolicyManagementMutationsResolvers<ContextType>;
+  PolicyRule?: PolicyRuleResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   Relation?: RelationResolvers<ContextType>;
   RichText?: RichTextResolvers<ContextType>;
+  Role?: RoleResolvers<ContextType>;
+  RoleManagementMutations?: RoleManagementMutationsResolvers<ContextType>;
   Text?: TextResolvers<ContextType>;
   TypstText?: TypstTextResolvers<ContextType>;
+  User?: UserResolvers<ContextType>;
+  UserManagementMutations?: UserManagementMutationsResolvers<ContextType>;
 }>;
 

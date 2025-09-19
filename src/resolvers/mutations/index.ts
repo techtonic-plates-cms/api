@@ -1,8 +1,10 @@
 import type { MutationResolvers } from '$graphql/resolvers-types';
-import { collectionMutations } from './collection';
-import { entryMutations } from './entry';
+import { contentMutationResolver } from './content';
+import { accountMutationResolver } from './self';
+import { adminMutationResolver } from './admin';
 
 export const mutationResolvers: MutationResolvers = {
-  ...collectionMutations,
-  ...entryMutations
+  ...contentMutationResolver,
+  ...accountMutationResolver,
+  ...adminMutationResolver
 };
