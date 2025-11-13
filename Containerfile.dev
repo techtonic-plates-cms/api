@@ -1,0 +1,6 @@
+FROM docker.io/denoland/deno:debian-2.5.1
+
+RUN apt update -y
+RUN apt install curl git -y
+
+RUN deno install npm:drizzle-kit -g

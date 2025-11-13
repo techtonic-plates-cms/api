@@ -1,0 +1,83 @@
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Containerfile.dev
+    env_file:
+      - .dev.env
+  
+  # RustFS - S3-compatible object storage (faster alternative to MinIO)
+  rustfs:
+    image: docker.io/rustfs/rustfs:alpha
+    ports:
+      - "9000:9000"
+    volumes:
+      - rustfs_data:/data
+      - rustfs_logs:/logs
+    environment:
+      RUSTFS_ROOT_USER: ${RUSTFS_ROOT_USER:-rustfsadmin}
+      RUSTFS_ROOT_PASSWORD: ${RUSTFS_ROOT_PASSWORD:-rustfsadmin}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+
+
+
+  # PostgreSQL Database
+  postgres:
+    # Official Postgres image from DockerHub (we use the last version)
+    image: docker.io/postgres:latest
+    # By default, a Postgres database is running on the 5432 port.
+    # If we want to access the database from our computer (outside the container),
+    # we must share the port with our computer's port.
+    # The syntax is [port we want on our machine]:[port we want to retrieve in the container]
+    # Note: You are free to change your computer's port,
+    # but take into consideration that it will change the way
+    # you are connecting to your database.
+    ports:
+      - 5432:5432
+    command: ["postgres", "-c", "wal_level=logical"]
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-techtonic} # The PostgreSQL user (useful to connect to the database)
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Jkjz1yG9bKcWBeB1zFdgqg} # The PostgreSQL password (useful to connect to the database)
+     # POSTGRES_DB: techtonic_plates
+      DEBEZIUM_PASSWORD: ${DEBEZIUM_PASSWORD:-debezium_pass}
+    volumes:
+      - pg_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-techtonic}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  redis:
+    image: docker.io/redis:8.2.0-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --save 20 1 --loglevel warning --requirepass techtonicz
+    volumes:
+      - redis:/data
+
+  # Redis Insight - Redis GUI
+  redis-insight:
+    image: docker.io/redis/redisinsight:latest
+    restart: always
+    ports:
+      - "5540:5540"
+    volumes:
+      - redis_insight:/data
+    depends_on:
+      - redis
+
+volumes:
+  rustfs_data:
+  rustfs_logs:
+  pg_data:
+  pgadmin_data:
+  redis:
+  redis_insight:
+
