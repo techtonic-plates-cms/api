@@ -219,7 +219,9 @@ async function main() {
     multipart: true, // Enable multipart file uploads
   });
 
-  Deno.serve(async (req) => {
+  Deno.serve(
+    {port: 3000, hostname: '0.0.0.0'},
+    async (req) => {
     const url = new URL(req.url);
     
     // Asset proxy route: GET /assets/:id
@@ -233,9 +235,9 @@ async function main() {
     return yoga.fetch(req);
   });
 
-  console.log(`Server is running at http://localhost:8000/`);
-  console.log(`GraphQL endpoint: http://localhost:8000/graphql`);
-  console.log(`Asset proxy endpoint: http://localhost:8000/assets/:id`);
+  console.log(`Server is running at http://localhost:3000/`);
+  console.log(`GraphQL endpoint: http://localhost:3000/graphql`);
+  console.log(`Asset proxy endpoint: http://localhost:3000/assets/:id`);
 }
 
 if (import.meta.main) {
