@@ -23,12 +23,12 @@ export const AssetType = builder.objectRef<{
 
 AssetType.implement({
   fields: (t) => ({
-    id: t.exposeString('id'),
-    filename: t.exposeString('filename'),
+    id: t.exposeString('id', {nullable: false}),
+    filename: t.exposeString('filename', {nullable: false}),
     mimeType: t.exposeString('mimeType'),
     fileSize: t.exposeInt('fileSize'),
-    path: t.exposeString('path'),
-    uploadedBy: t.exposeString('uploadedBy'),
+    path: t.exposeString('path', {nullable: false}),
+    uploadedBy: t.exposeString('uploadedBy', {nullable: false}),
     uploadedAt: t.string({
       resolve: (parent) => parent.uploadedAt.toISOString(),
     }),

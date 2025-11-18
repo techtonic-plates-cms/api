@@ -27,10 +27,10 @@ export const EntryType = builder.objectRef<{
 
 EntryType.implement({
   fields: (t) => ({
-    id: t.exposeString('id'),
-    name: t.exposeString('name'),
-    collectionId: t.exposeString('collectionId'),
-    status: t.exposeString('status'),
+    id: t.exposeString('id', {nullable: false}),
+    name: t.exposeString('name', {nullable: false}),
+    collectionId: t.exposeString('collectionId', {nullable: false}),
+    status: t.exposeString('status', {nullable: false}),
     slug: t.exposeString('slug', { nullable: true }),
     locale: t.exposeString('locale', { nullable: true }),
     defaultLocale: t.exposeString('defaultLocale', { nullable: true }),

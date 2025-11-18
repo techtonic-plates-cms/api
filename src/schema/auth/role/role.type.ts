@@ -17,8 +17,8 @@ export const RoleType = builder.objectRef<{
 
 RoleType.implement({
   fields: (t) => ({
-    id: t.exposeString('id'),
-    name: t.exposeString('name'),
+    id: t.exposeString('id', {nullable: false}),
+    name: t.exposeString('name', {nullable: false}),
     description: t.string({ nullable: true, resolve: (parent) => parent.description }),
     creationTime: t.field({
       type: 'String',

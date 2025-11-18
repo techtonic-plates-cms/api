@@ -141,12 +141,12 @@ export const PolicyType = builder.objectRef<{
 
 PolicyType.implement({
   fields: (t) => ({
-    id: t.exposeString('id'),
-    name: t.exposeString('name'),
+    id: t.exposeString('id', {nullable: false}),
+    name: t.exposeString('name', {nullable: false}),
     description: t.string({ nullable: true, resolve: (parent) => parent.description }),
-    effect: t.exposeString('effect'),
-    priority: t.exposeInt('priority'),
-    isActive: t.exposeBoolean('isActive'),
+    effect: t.exposeString('effect', {nullable: false}),
+    priority: t.exposeInt('priority', {nullable: false}),
+    isActive: t.exposeBoolean('isActive', {nullable: false}),
     resourceType: t.string({
       resolve: (parent) => parent.resourceType.toUpperCase(),
     }),

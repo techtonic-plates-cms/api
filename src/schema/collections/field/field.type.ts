@@ -17,11 +17,11 @@ export const FieldType = builder.objectRef<{
 
 FieldType.implement({
   fields: (t) => ({
-    id: t.exposeString('id'),
-    name: t.exposeString('name'),
+    id: t.exposeString('id', {nullable: false}),
+    name: t.exposeString('name', {nullable: false}),
     label: t.string({ nullable: true, resolve: (parent) => parent.label }),
-    dataType: t.exposeString('dataType'),
-    collectionId: t.exposeString('collectionId'),
+    dataType: t.exposeString('dataType', {nullable: false}),
+    collectionId: t.exposeString('collectionId', {nullable: false}),
     collection: t.field({
       type: 'Collection',
       nullable: true,

@@ -29,12 +29,14 @@ export function useAuth(): Plugin<GraphQLContext> {
         extendContext({ 
           isAuthenticated: false,
           checkPermission: () => Promise.resolve(false),
-          requirePermission: () => Promise.reject(new GraphQLError('Authentication required', {
-            extensions: {
-              code: 'UNAUTHENTICATED',
-              http: { status: 401 },
-            },
-          })),
+          requirePermission: () => {
+            throw new GraphQLError('Authentication required', {
+              extensions: {
+                code: 'UNAUTHENTICATED',
+                http: { status: 401 },
+              },
+            });
+          },
         });
         return;
       }
@@ -46,12 +48,14 @@ export function useAuth(): Plugin<GraphQLContext> {
         extendContext({ 
           isAuthenticated: false,
           checkPermission: () => Promise.resolve(false),
-          requirePermission: () => Promise.reject(new GraphQLError('Authentication required', {
-            extensions: {
-              code: 'UNAUTHENTICATED',
-              http: { status: 401 },
-            },
-          })),
+          requirePermission: () => {
+            throw new GraphQLError('Authentication required', {
+              extensions: {
+                code: 'UNAUTHENTICATED',
+                http: { status: 401 },
+              },
+            });
+          },
         });
         return;
       }
@@ -71,12 +75,14 @@ export function useAuth(): Plugin<GraphQLContext> {
           extendContext({ 
             isAuthenticated: false,
             checkPermission: () => Promise.resolve(false),
-            requirePermission: () => Promise.reject(new GraphQLError('Authentication required', {
-              extensions: {
-                code: 'UNAUTHENTICATED',
-                http: { status: 401 },
-              },
-            })),
+            requirePermission: () => {
+              throw new GraphQLError('Session expired or invalid', {
+                extensions: {
+                  code: 'UNAUTHENTICATED',
+                  http: { status: 401 },
+                },
+              });
+            },
           });
           return;
         }
@@ -118,12 +124,14 @@ export function useAuth(): Plugin<GraphQLContext> {
         extendContext({ 
           isAuthenticated: false,
           checkPermission: () => Promise.resolve(false),
-          requirePermission: () => Promise.reject(new GraphQLError('Authentication required', {
-            extensions: {
-              code: 'UNAUTHENTICATED',
-              http: { status: 401 },
-            },
-          })),
+          requirePermission: () => {
+            throw new GraphQLError('Invalid or expired token', {
+              extensions: {
+                code: 'UNAUTHENTICATED',
+                http: { status: 401 },
+              },
+            });
+          },
         });
       }
     },

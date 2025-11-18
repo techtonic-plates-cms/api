@@ -19,8 +19,8 @@ export const User = builder.objectRef<{
 
 User.implement({
   fields: (t) => ({
-    id: t.exposeString('id'),
-    name: t.exposeString('name'),
+    id: t.exposeString('id', {nullable: false}),
+    name: t.exposeString('name', {nullable: false}),
     sessionId: t.exposeString('sessionId', { nullable: true }),
     status: t.string({ 
       nullable: true, 
