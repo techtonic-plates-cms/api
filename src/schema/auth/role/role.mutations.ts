@@ -14,13 +14,13 @@ const CreateRoleInput = builder.inputType('CreateRoleInput', {
   fields: (t) => ({
     name: t.string({ required: true }),
     description: t.string({ required: false }),
-    policyIds: t.stringList({ required: false }),
+    policyIds: t.idList({ required: false }),
   }),
 });
 
 const UpdateRoleInput = builder.inputType('UpdateRoleInput', {
   fields: (t) => ({
-    id: t.string({ required: true }),
+    id: t.id({ required: true }),
     name: t.string({ required: false }),
     description: t.string({ required: false }),
   }),
@@ -28,8 +28,8 @@ const UpdateRoleInput = builder.inputType('UpdateRoleInput', {
 
 const AssignPolicyToRoleInput = builder.inputType('AssignPolicyToRoleInput', {
   fields: (t) => ({
-    roleId: t.string({ required: true }),
-    policyId: t.string({ required: true }),
+    roleId: t.id({ required: true }),
+    policyId: t.id({ required: true }),
     expiresAt: t.string({ required: false }), // ISO date string
     reason: t.string({ required: false }),
   }),
@@ -129,7 +129,7 @@ RoleMutations.implement({
       type: 'Boolean',
       description: 'Delete a role',
       args: {
-        id: t.arg.string({ required: true }),
+        id: t.arg.id({ required: true }),
       },
       resolve: async (_parent, args, context) => {
         requireAuth(context);
@@ -216,8 +216,8 @@ RoleMutations.implement({
       type: 'Boolean',
       description: 'Remove a policy from a role',
       args: {
-        roleId: t.arg.string({ required: true }),
-        policyId: t.arg.string({ required: true }),
+        roleId: t.arg.id({ required: true }),
+        policyId: t.arg.id({ required: true }),
       },
       resolve: async (_parent, args, context) => {
         requireAuth(context);

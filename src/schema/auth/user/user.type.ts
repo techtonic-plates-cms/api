@@ -19,7 +19,7 @@ export const User = builder.objectRef<{
 
 User.implement({
   fields: (t) => ({
-    id: t.exposeString('id', {nullable: false}),
+    id: t.exposeID('id', {nullable: false}),
     name: t.exposeString('name', {nullable: false}),
     sessionId: t.exposeString('sessionId', { nullable: true }),
     status: t.string({ 
@@ -82,7 +82,7 @@ export const RoleRefType = builder.objectRef<{
 
 RoleRefType.implement({
   fields: (t) => ({
-    id: t.exposeString('id'),
+    id: t.exposeID('id'),
     name: t.exposeString('name'),
     description: t.string({ nullable: true, resolve: (parent) => parent.description }),
     assignedAt: t.field({

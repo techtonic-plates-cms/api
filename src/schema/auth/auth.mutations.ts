@@ -21,6 +21,7 @@ builder.mutationField('login', (t) =>
       name: t.arg.string({ required: true }),
       password: t.arg.string({ required: true }),
     },
+    nullable: false,
     resolve: async (_parent, args, _context) => {
       const { name, password } = args;
 
@@ -89,6 +90,7 @@ builder.mutationField('refresh', (t) =>
     args: {
       refreshToken: t.arg.string({ required: true }),
     },
+    nullable: false,
     resolve: async (_parent, args, _context) => {
       const { refreshToken } = args;
 

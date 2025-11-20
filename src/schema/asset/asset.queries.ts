@@ -15,7 +15,7 @@ builder.queryField('asset', (t) =>
     type: AssetType,
     nullable: true,
     args: {
-      id: t.arg.string({ required: true }),
+      id: t.arg.id({ required: true }),
     },
     resolve: async (_parent, args, context: GraphQLContext) => {
       requireAuth(context);

@@ -14,7 +14,7 @@ builder.queryField('collection', (t) =>
     type: CollectionType,
     nullable: true,
     args: {
-      id: t.arg.string({ required: false }),
+      id: t.arg.id({ required: false }),
       name: t.arg.string({ required: false }),
       slug: t.arg.string({ required: false }),
     },

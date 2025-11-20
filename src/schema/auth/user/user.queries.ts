@@ -15,7 +15,7 @@ builder.queryField('user', (t) =>
     nullable: true,
     description: 'Get a user by ID or name',
     args: {
-      id: t.arg.string({ required: false }),
+      id: t.arg.id({ required: false }),
       name: t.arg.string({ required: false }),
     },
     resolve: async (_parent, args, context) => {

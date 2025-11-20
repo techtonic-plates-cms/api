@@ -17,7 +17,7 @@ export const RoleType = builder.objectRef<{
 
 RoleType.implement({
   fields: (t) => ({
-    id: t.exposeString('id', {nullable: false}),
+    id: t.exposeID('id', {nullable: false}),
     name: t.exposeString('name', {nullable: false}),
     description: t.string({ nullable: true, resolve: (parent) => parent.description }),
     creationTime: t.field({
@@ -103,7 +103,7 @@ export const UserRefType = builder.objectRef<{
 
 UserRefType.implement({
   fields: (t) => ({
-    id: t.exposeString('id'),
+    id: t.exposeID('id'),
     name: t.exposeString('name'),
     status: t.exposeString('status'),
     assignedAt: t.field({
@@ -136,7 +136,7 @@ export const PolicyRefType = builder.objectRef<{
 
 PolicyRefType.implement({
   fields: (t) => ({
-    id: t.exposeString('id'),
+    id: t.exposeID('id'),
     name: t.exposeString('name'),
     description: t.string({ nullable: true, resolve: (parent) => parent.description }),
     effect: t.exposeString('effect'),

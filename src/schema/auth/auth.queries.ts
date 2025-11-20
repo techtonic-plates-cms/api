@@ -1,3 +1,4 @@
+import { requireAuth } from "$graphql-context";
 import { builder } from '../builder.ts';
 import { User } from './auth.type.ts';
 
@@ -12,6 +13,8 @@ builder.queryField('me', (t) =>
     nullable: true,
     description: 'Get the currently authenticated user',
     resolve: (_parent, _args, context) => {
+      requireAuth(context);
+      
       if (!context.isAuthenticated || !context.user) {
         return null;
       }

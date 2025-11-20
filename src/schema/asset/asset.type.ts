@@ -23,7 +23,7 @@ export const AssetType = builder.objectRef<{
 
 AssetType.implement({
   fields: (t) => ({
-    id: t.exposeString('id', {nullable: false}),
+    id: t.exposeID('id', {nullable: false}),
     filename: t.exposeString('filename', {nullable: false}),
     mimeType: t.exposeString('mimeType'),
     fileSize: t.exposeInt('fileSize'),
@@ -90,7 +90,7 @@ builder.scalarType('Upload', {
 
 export const UpdateAssetInput = builder.inputType('UpdateAssetInput', {
   fields: (t) => ({
-    id: t.string({ required: true }),
+    id: t.id({ required: true }),
     alt: t.string({ required: false }),
     caption: t.string({ required: false }),
     isPublic: t.boolean({ required: false, description: 'Whether the asset is publicly accessible' }),

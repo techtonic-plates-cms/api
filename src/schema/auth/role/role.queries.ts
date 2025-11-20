@@ -15,7 +15,7 @@ builder.queryField('role', (t) =>
     nullable: true,
     description: 'Get a role by ID or name',
     args: {
-      id: t.arg.string({ required: false }),
+      id: t.arg.id({ required: false }),
       name: t.arg.string({ required: false }),
     },
     resolve: async (_parent, args, context) => {

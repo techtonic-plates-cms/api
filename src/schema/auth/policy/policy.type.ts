@@ -141,7 +141,7 @@ export const PolicyType = builder.objectRef<{
 
 PolicyType.implement({
   fields: (t) => ({
-    id: t.exposeString('id', {nullable: false}),
+    id: t.exposeID('id', {nullable: false}),
     name: t.exposeString('name', {nullable: false}),
     description: t.string({ nullable: true, resolve: (parent) => parent.description }),
     effect: t.exposeString('effect', {nullable: false}),
@@ -266,8 +266,8 @@ export const PolicyRuleType = builder.objectRef<{
 
 PolicyRuleType.implement({
   fields: (t) => ({
-    id: t.exposeString('id'),
-    policyId: t.exposeString('policyId'),
+    id: t.exposeID('id'),
+    policyId: t.exposeID('policyId'),
     attributePath: t.exposeString('attributePath'),
     operator: t.exposeString('operator'),
     expectedValue: t.exposeString('expectedValue'),
@@ -297,7 +297,7 @@ export const RoleAssignmentType = builder.objectRef<{
 
 RoleAssignmentType.implement({
   fields: (t) => ({
-    id: t.exposeString('id'),
+    id: t.exposeID('id'),
     name: t.exposeString('name'),
     assignedAt: t.field({
       type: 'String',
@@ -323,7 +323,7 @@ export const UserAssignmentType = builder.objectRef<{
 
 UserAssignmentType.implement({
   fields: (t) => ({
-    id: t.exposeString('id'),
+    id: t.exposeID('id'),
     name: t.exposeString('name'),
     assignedAt: t.field({
       type: 'String',

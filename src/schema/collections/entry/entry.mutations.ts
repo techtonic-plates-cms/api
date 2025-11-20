@@ -93,7 +93,7 @@ const FieldJsonValueInput = builder.inputType('FieldJsonValueInput', {
 const FieldAssetValueInput = builder.inputType('FieldAssetValueInput', {
   fields: (t) => ({
     fieldName: t.string({ required: true }),
-    assetId: t.string({ required: true }),
+    assetId: t.id({ required: true }),
     sortOrder: t.int({ required: false }),
   }),
 });
@@ -101,13 +101,13 @@ const FieldAssetValueInput = builder.inputType('FieldAssetValueInput', {
 const FieldRelationValueInput = builder.inputType('FieldRelationValueInput', {
   fields: (t) => ({
     fieldName: t.string({ required: true }),
-    entryId: t.string({ required: true }),
+    entryId: t.id({ required: true }),
   }),
 });
 
 const CreateEntryInput = builder.inputType('CreateEntryInput', {
   fields: (t) => ({
-    collectionId: t.string({ required: true }),
+    collectionId: t.id({ required: true }),
     name: t.string({ required: true }),
     slug: t.string({ required: false }),
     status: t.field({ type: EntryStatusEnum, required: false }),
@@ -129,7 +129,7 @@ const CreateEntryInput = builder.inputType('CreateEntryInput', {
 
 const UpdateEntryInput = builder.inputType('UpdateEntryInput', {
   fields: (t) => ({
-    id: t.string({ required: true }),
+    id: t.id({ required: true }),
     name: t.string({ required: false }),
     slug: t.string({ required: false }),
     status: t.field({ type: EntryStatusEnum, required: false }),
@@ -557,7 +557,7 @@ EntryMutations.implement({
     delete: t.field({
     type: 'Boolean',
     args: {
-      id: t.arg.string({ required: true }),
+      id: t.arg.id({ required: true }),
     },
     resolve: async (_parent, args, context) => {
       requireAuth(context);
@@ -590,7 +590,7 @@ EntryMutations.implement({
     publish: t.field({
     type: EntryType,
     args: {
-      id: t.arg.string({ required: true }),
+      id: t.arg.id({ required: true }),
     },
     resolve: async (_parent, args, context) => {
       requireAuth(context);
@@ -643,7 +643,7 @@ EntryMutations.implement({
     unpublish: t.field({
     type: EntryType,
     args: {
-      id: t.arg.string({ required: true }),
+      id: t.arg.id({ required: true }),
     },
     resolve: async (_parent, args, context) => {
       requireAuth(context);
@@ -695,7 +695,7 @@ EntryMutations.implement({
     archive: t.field({
     type: EntryType,
     args: {
-      id: t.arg.string({ required: true }),
+      id: t.arg.id({ required: true }),
     },
     resolve: async (_parent, args, context) => {
       requireAuth(context);
@@ -747,7 +747,7 @@ EntryMutations.implement({
     restore: t.field({
     type: EntryType,
     args: {
-      id: t.arg.string({ required: true }),
+      id: t.arg.id({ required: true }),
     },
     resolve: async (_parent, args, context) => {
       requireAuth(context);

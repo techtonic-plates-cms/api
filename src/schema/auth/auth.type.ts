@@ -23,8 +23,8 @@ export const LoginPayload = builder.objectRef<{
   };
 }>('LoginPayload').implement({
   fields: (t) => ({
-    accessToken: t.exposeString('accessToken'),
-    refreshToken: t.exposeString('refreshToken'),
+    accessToken: t.exposeString('accessToken', {nullable: false}),
+    refreshToken: t.exposeString('refreshToken', {nullable: false}),
     user: t.field({
       type: User,
       resolve: (parent) => ({
@@ -40,7 +40,7 @@ export const RefreshPayload = builder.objectRef<{
   accessToken: string;
 }>('RefreshPayload').implement({
   fields: (t) => ({
-    accessToken: t.exposeString('accessToken'),
+    accessToken: t.exposeString('accessToken', {nullable: false}),
   }),
 });
 

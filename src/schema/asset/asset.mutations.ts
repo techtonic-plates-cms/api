@@ -187,7 +187,7 @@ AssetMutations.implement({
     delete: t.field({
       type: 'Boolean',
       args: {
-        id: t.arg.string({ required: true }),
+        id: t.arg.id({ required: true }),
       },
       resolve: async (_parent, args, context: GraphQLContext) => {
         requireAuth(context);

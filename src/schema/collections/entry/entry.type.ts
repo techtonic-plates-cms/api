@@ -27,9 +27,9 @@ export const EntryType = builder.objectRef<{
 
 EntryType.implement({
   fields: (t) => ({
-    id: t.exposeString('id', {nullable: false}),
+    id: t.exposeID('id', {nullable: false}),
     name: t.exposeString('name', {nullable: false}),
-    collectionId: t.exposeString('collectionId', {nullable: false}),
+    collectionId: t.exposeID('collectionId', {nullable: false}),
     status: t.exposeString('status', {nullable: false}),
     slug: t.exposeString('slug', { nullable: true }),
     locale: t.exposeString('locale', { nullable: true }),
@@ -46,7 +46,7 @@ EntryType.implement({
       nullable: true,
       resolve: (parent) => parent.publishedAt?.toISOString(),
     }),
-    createdBy: t.exposeString('createdBy', { nullable: true }),
+    createdBy: t.exposeID('createdBy', { nullable: true }),
     collection: t.field({
       type: 'Collection',
       nullable: true,

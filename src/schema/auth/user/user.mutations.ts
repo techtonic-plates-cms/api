@@ -17,13 +17,13 @@ const CreateUserInput = builder.inputType('CreateUserInput', {
     name: t.string({ required: true }),
     password: t.string({ required: true }),
     status: t.field({ type: UserStatusEnum, required: false }),
-    roleIds: t.stringList({ required: false }),
+    roleIds: t.idList({ required: false }),
   }),
 });
 
 const UpdateUserInput = builder.inputType('UpdateUserInput', {
   fields: (t) => ({
-    id: t.string({ required: true }),
+    id: t.id({ required: true }),
     name: t.string({ required: false }),
     status: t.field({ type: UserStatusEnum, required: false }),
   }),
@@ -31,7 +31,7 @@ const UpdateUserInput = builder.inputType('UpdateUserInput', {
 
 const ChangePasswordInput = builder.inputType('ChangePasswordInput', {
   fields: (t) => ({
-    userId: t.string({ required: false }), // If not provided, changes own password
+    userId: t.id({ required: false }), // If not provided, changes own password
     currentPassword: t.string({ required: false }), // Required when changing own password
     newPassword: t.string({ required: true }),
   }),
@@ -39,8 +39,8 @@ const ChangePasswordInput = builder.inputType('ChangePasswordInput', {
 
 const AssignRoleInput = builder.inputType('AssignRoleInput', {
   fields: (t) => ({
-    userId: t.string({ required: true }),
-    roleId: t.string({ required: true }),
+    userId: t.id({ required: true }),
+    roleId: t.id({ required: true }),
     expiresAt: t.string({ required: false }), // ISO date string
   }),
 });
@@ -153,7 +153,7 @@ UserMutations.implement({
       type: 'Boolean',
       description: 'Delete a user',
       args: {
-        id: t.arg.string({ required: true }),
+        id: t.arg.id({ required: true }),
       },
       resolve: async (_parent, args, context) => {
         requireAuth(context);
@@ -313,8 +313,8 @@ UserMutations.implement({
       type: 'Boolean',
       description: 'Remove a role from a user',
       args: {
-        userId: t.arg.string({ required: true }),
-        roleId: t.arg.string({ required: true }),
+        userId: t.arg.id({ required: true }),
+        roleId: t.arg.id({ required: true }),
       },
       resolve: async (_parent, args, context) => {
         requireAuth(context);
@@ -340,7 +340,7 @@ UserMutations.implement({
       type: User,
       description: 'Activate a user account',
       args: {
-        id: t.arg.string({ required: true }),
+        id: t.arg.id({ required: true }),
       },
       resolve: async (_parent, args, context) => {
         requireAuth(context);
@@ -378,7 +378,7 @@ UserMutations.implement({
       type: User,
       description: 'Deactivate a user account',
       args: {
-        id: t.arg.string({ required: true }),
+        id: t.arg.id({ required: true }),
       },
       resolve: async (_parent, args, context) => {
         requireAuth(context);
@@ -426,7 +426,7 @@ UserMutations.implement({
       type: User,
       description: 'Ban a user account',
       args: {
-        id: t.arg.string({ required: true }),
+        id: t.arg.id({ required: true }),
       },
       resolve: async (_parent, args, context) => {
         requireAuth(context);
@@ -474,7 +474,7 @@ UserMutations.implement({
       type: User,
       description: 'Unban a user account (sets to ACTIVE)',
       args: {
-        id: t.arg.string({ required: true }),
+        id: t.arg.id({ required: true }),
       },
       resolve: async (_parent, args, context) => {
         requireAuth(context);

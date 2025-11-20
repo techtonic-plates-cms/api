@@ -66,7 +66,7 @@ const CreateCollectionInput = builder.inputType('CreateCollectionInput', {
 
 const UpdateFieldInput = builder.inputType('UpdateFieldInput', {
   fields: (t) => ({
-    id: t.string({ required: false }), // If provided, update existing field; otherwise create new
+    id: t.id({ required: false }), // If provided, update existing field; otherwise create new
     name: t.string({ required: true }),
     label: t.string({ required: false }),
     description: t.string({ required: false }),
@@ -85,7 +85,7 @@ const UpdateFieldInput = builder.inputType('UpdateFieldInput', {
 
 const UpdateCollectionInput = builder.inputType('UpdateCollectionInput', {
   fields: (t) => ({
-    id: t.string({ required: true }),
+    id: t.id({ required: true }),
     name: t.string({ required: false }),
     slug: t.string({ required: false }),
     description: t.string({ required: false }),
@@ -98,7 +98,7 @@ const UpdateCollectionInput = builder.inputType('UpdateCollectionInput', {
       type: [UpdateFieldInput],
       required: false,
     }),
-    deleteFieldIds: t.stringList({ required: false }), // IDs of fields to delete
+    deleteFieldIds: t.idList({ required: false }), // IDs of fields to delete
   }),
 });
 
@@ -308,7 +308,7 @@ CollectionMutations.implement({
     delete: t.field({
       type: 'Boolean',
       args: {
-        id: t.arg.string({ required: true }),
+        id: t.arg.id({ required: true }),
       },
       resolve: async (_parent, args, context) => {
         requireAuth(context);

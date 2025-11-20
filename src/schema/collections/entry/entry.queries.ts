@@ -14,7 +14,7 @@ builder.queryField('entry', (t) =>
     type: EntryType,
     nullable: true,
     args: {
-      id: t.arg.string({ required: true }),
+      id: t.arg.id({ required: true }),
     },
     resolve: async (_parent, args, context) => {
       requireAuth(context);
@@ -59,7 +59,7 @@ builder.queryField('entries', (t) =>
   t.field({
     type: [EntryType],
     args: {
-      collectionId: t.arg.string({ required: false }),
+      collectionId: t.arg.id({ required: false }),
       status: t.arg.string({ required: false }),
       locale: t.arg.string({ required: false }),
       search: t.arg.string({ required: false }),

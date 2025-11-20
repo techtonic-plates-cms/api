@@ -20,11 +20,11 @@ export const CollectionType = builder.objectRef<{
 
 CollectionType.implement({
   fields: (t) => ({
-    id: t.exposeString('id', {nullable: false}),
+    id: t.exposeID('id', {nullable: false}),
     name: t.exposeString('name', {nullable: false}),
     slug: t.exposeString('slug', {nullable: false}),
     description: t.string({ nullable: true, resolve: (parent) => parent.description }),
-    createdBy: t.exposeString('createdBy', { nullable: true }),
+    createdBy: t.exposeID('createdBy', { nullable: true }),
     createdByUser: t.field({
       type: User,
       nullable: true,

@@ -111,7 +111,7 @@ const CreatePolicyInput = builder.inputType('CreatePolicyInput', {
 
 const UpdatePolicyRuleInput = builder.inputType('UpdatePolicyRuleInput', {
   fields: (t) => ({
-    id: t.string({ required: false }), // If provided, update; otherwise create new
+    id: t.id({ required: false }), // If provided, update; otherwise create new
     attributePath: t.string({ required: true }),
     operator: t.string({ required: true }),
     expectedValue: t.string({ required: true }),
@@ -124,7 +124,7 @@ const UpdatePolicyRuleInput = builder.inputType('UpdatePolicyRuleInput', {
 
 const UpdatePolicyInput = builder.inputType('UpdatePolicyInput', {
   fields: (t) => ({
-    id: t.string({ required: true }),
+    id: t.id({ required: true }),
     name: t.string({ required: false }),
     description: t.string({ required: false }),
     effect: t.field({ type: PermissionEffectEnum, required: false }),
@@ -132,14 +132,14 @@ const UpdatePolicyInput = builder.inputType('UpdatePolicyInput', {
     isActive: t.boolean({ required: false }),
     ruleConnector: t.field({ type: LogicalOperatorEnum, required: false }),
     rules: t.field({ type: [UpdatePolicyRuleInput], required: false }),
-    deleteRuleIds: t.stringList({ required: false }),
+    deleteRuleIds: t.idList({ required: false }),
   }),
 });
 
 const AssignPolicyToUserInput = builder.inputType('AssignPolicyToUserInput', {
   fields: (t) => ({
-    userId: t.string({ required: true }),
-    policyId: t.string({ required: true }),
+    userId: t.id({ required: true }),
+    policyId: t.id({ required: true }),
     expiresAt: t.string({ required: false }), // ISO date string
     reason: t.string({ required: false }),
   }),
@@ -319,7 +319,7 @@ PolicyMutations.implement({
       type: 'Boolean',
       description: 'Delete a policy',
       args: {
-        id: t.arg.string({ required: true }),
+        id: t.arg.id({ required: true }),
       },
       resolve: async (_parent, args, context) => {
         requireAuth(context);
@@ -406,8 +406,8 @@ PolicyMutations.implement({
       type: 'Boolean',
       description: 'Remove a direct policy assignment from a user',
       args: {
-        userId: t.arg.string({ required: true }),
-        policyId: t.arg.string({ required: true }),
+        userId: t.arg.id({ required: true }),
+        policyId: t.arg.id({ required: true }),
       },
       resolve: async (_parent, args, context) => {
         requireAuth(context);
