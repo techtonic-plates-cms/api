@@ -1,7 +1,8 @@
 {
   "tasks": {
     "dev": "deno run --watch -A src/main.ts",
-    "drizzle-kit": "deno --env -A --node-modules-dir npm:drizzle-kit"
+    "drizzle-kit": "deno --env -A --node-modules-dir npm:drizzle-kit",
+    "push-db": "deno task drizzle-kit -- push"
   },
   "imports": {
     "@aws-sdk/client-s3": "npm:@aws-sdk/client-s3@^3.705.0",
