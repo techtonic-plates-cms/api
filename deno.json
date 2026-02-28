@@ -1,5 +1,4 @@
 {
-  "nodeModulesDir": "auto",
   "tasks": {
     "dev": "deno run --watch -A src/main.ts",
     "drizzle-kit": "deno --env -A --node-modules-dir npm:drizzle-kit"

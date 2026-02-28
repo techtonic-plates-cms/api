@@ -1,3 +1,4 @@
 {
-    "remote.localPortHost": "allInterfaces"
+    "remote.localPortHost": "allInterfaces",
+    "deno.enable": true
 }

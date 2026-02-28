@@ -7,7 +7,7 @@ import {
   userPoliciesTable,
   abacPolicyRulesTable,
 } from './db/schema.ts';
-import { eq, and, inArray } from 'drizzle-orm';
+import { eq, and, or, isNull, gt, inArray } from 'drizzle-orm';
 
 export type ResourceType = 'users' | 'collections' | 'entries' | 'assets' | 'fields';
 export type ActionType = 
@@ -33,27 +33,53 @@ export interface PermissionContext {
  * Get all policy IDs applicable to a user (from roles and direct assignments)
  */
 async function getUserPolicyIds(userId: string): Promise<string[]> {
-  // Get user's roles
+  const now = new Date();
+
+  // Get user's roles (only non-expired)
   const userRoles = await db
     .select({ roleId: userRolesTable.roleId })
     .from(userRolesTable)
-    .where(eq(userRolesTable.userId, userId));
+    .where(
+      and(
+        eq(userRolesTable.userId, userId),
+        or(
+          isNull(userRolesTable.expiresAt),
+          gt(userRolesTable.expiresAt, now)
+        )
+      )
+    );
 
   const roleIds = userRoles.map(ur => ur.roleId);
 
-  // Get policies from roles
+  // Get policies from roles (only non-expired)
   const rolePolicies = roleIds.length > 0
     ? await db
         .select({ policyId: rolePoliciesTable.policyId })
         .from(rolePoliciesTable)
-        .where(inArray(rolePoliciesTable.roleId, roleIds))
+        .where(
+          and(
+            inArray(rolePoliciesTable.roleId, roleIds),
+            or(
+              isNull(rolePoliciesTable.expiresAt),
+              gt(rolePoliciesTable.expiresAt, now)
+            )
+          )
+        )
     : [];
 
-  // Get direct user policies
+  // Get direct user policies (only non-expired)
   const directPolicies = await db
     .select({ policyId: userPoliciesTable.policyId })
     .from(userPoliciesTable)
-    .where(eq(userPoliciesTable.userId, userId));
+    .where(
+      and(
+        eq(userPoliciesTable.userId, userId),
+        or(
+          isNull(userPoliciesTable.expiresAt),
+          gt(userPoliciesTable.expiresAt, now)
+        )
+      )
+    );
 
   // Combine and deduplicate
   const allPolicyIds = [
@@ -94,8 +120,12 @@ export async function checkPermission(context: PermissionContext): Promise<boole
 
   // Process policies in priority order (higher priority first)
   // DENY policies should be evaluated before ALLOW
-  const denies = policies.filter(p => p.effect === 'DENY');
-  const allows = policies.filter(p => p.effect === 'ALLOW');
+  const denies = policies
+    .filter(p => p.effect === 'DENY')
+    .sort((a, b) => b.priority - a.priority); // Descending: higher priority first
+  const allows = policies
+    .filter(p => p.effect === 'ALLOW')
+    .sort((a, b) => b.priority - a.priority); // Descending: higher priority first
 
   // Check DENY policies first
   for (const policy of denies) {
@@ -203,7 +233,16 @@ function getAttributeValue(path: string, context: PermissionContext): unknown {
         return context.resource[parts[1]];
       }
       // Nested resource attributes like resource.collection.id
-      return context.resource[parts.slice(1).join('.')];
+      // Navigate nested properties
+      let value: unknown = context.resource;
+      for (let i = 1; i < parts.length; i++) {
+        if (value && typeof value === 'object') {
+          value = (value as Record<string, unknown>)[parts[i]];
+        } else {
+          return undefined;
+        }
+      }
+      return value;
     
     case 'action':
       if (parts[1] === 'type') return context.action;
